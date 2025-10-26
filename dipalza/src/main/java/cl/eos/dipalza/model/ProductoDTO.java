@@ -1,0 +1,118 @@
+package cl.eos.dipalza.model;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+public class ProductoDTO {
+
+	private String articulo;
+
+	private String descripcion;
+
+	private BigDecimal ventaNeto;
+
+	private BigDecimal porcIla;
+
+	private BigDecimal porcCarne;
+
+	private String unidad;
+
+	private BigDecimal stock;
+
+	private Integer pieces;
+
+	private Boolean numbered;
+
+	private String codigoila;
+
+	private LocalDate lastUpdate;
+
+	public String getArticulo() {
+		return articulo;
+	}
+
+	public void setArticulo(String articulo) {
+		this.articulo = articulo;
+	}
+
+	public String getDescripcion() {
+		return descripcion;
+	}
+
+	public void setDescripcion(String descripcion) {
+		this.descripcion = descripcion;
+	}
+
+	public BigDecimal getVentaNeto() {
+		return ventaNeto;
+	}
+
+	public void setVentaNeto(BigDecimal ventaNeto) {
+		this.ventaNeto = ventaNeto;
+	}
+
+	public BigDecimal getPorcIla() {
+		return porcIla;
+	}
+
+	public void setPorcIla(BigDecimal porcIla) {
+		this.porcIla = porcIla;
+	}
+
+	public BigDecimal getPorcCarne() {
+		return porcCarne;
+	}
+
+	public void setPorcCarne(BigDecimal porcCarne) {
+		this.porcCarne = porcCarne;
+	}
+
+	public String getUnidad() {
+		return unidad;
+	}
+
+	public void setUnidad(String unidad) {
+		this.unidad = unidad;
+	}
+
+	public BigDecimal getStock() {
+		return stock;
+	}
+
+	public void setStock(BigDecimal stock) {
+		this.stock = stock;
+	}
+
+	public Integer getPieces() {
+		return pieces;
+	}
+
+	public void setPieces(Integer pieces) {
+		this.pieces = pieces;
+	}
+
+	public Boolean getNumbered() {
+		return numbered;
+	}
+
+	public void setNumbered(Boolean numbered) {
+		this.numbered = numbered;
+	}
+
+	public String getCodigoila() {
+		return codigoila;
+	}
+
+	public void setCodigoila(String codigoila) {
+		this.codigoila = codigoila;
+	}
+
+	public LocalDate getLastUpdate() {
+		return lastUpdate;
+	}
+
+	public void setLastUpdate(LocalDate lastUpdate) {
+		this.lastUpdate = lastUpdate;
+	}
+
+}

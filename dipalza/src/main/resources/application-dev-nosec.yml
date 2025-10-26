@@ -1,0 +1,33 @@
+spring:
+  config:
+    activate:
+      on-profile: dev-nosec
+  datasource:
+    url: jdbc:sqlserver://192.168.100.102:1433;databaseName=ventas;encrypt=true;trustServerCertificate=true
+    username: sa
+    password: _l2j1rs2
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  jpa:
+    hibernate:
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
+      ddl-auto: none   # create, update, validate, none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.SQLServerDialect
+    show-sql: true
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+logging:
+  level:
+    root: INFO
+
+app:
+  cors:
+    allowed-origins: "http://localhost:4200"

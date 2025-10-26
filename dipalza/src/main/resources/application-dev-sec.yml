@@ -1,0 +1,40 @@
+spring:
+  config:
+    activate:
+      on-profile: dev-sec
+  datasource:
+    url: jdbc:sqlserver://192.168.100.102:1433;databaseName=ventas;encrypt=true;trustServerCertificate=true
+    username: sa
+    password: _l2j1rs2
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  jpa:
+    hibernate:
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
+      ddl-auto: none   # create, update, validate, none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.SQLServerDialect
+    show-sql: true
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+logging:
+  level:
+    root: INFO
+
+app:
+  cors:
+    allowed-origins: "http://localhost:4200"
+
+security:
+  jwt:
+    issuer: dipalza
+    secret: "8f1d7c0a9b52e34f67a8d5c2b19e04fa37b1e2c4f85d09ab23cd4567e90fab12"
+    access-minutes: 10
+    refresh-days: 15
