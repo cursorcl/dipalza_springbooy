@@ -4,15 +4,15 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import cl.eos.dipalza.entity.ids.VentaDetalleId;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
@@ -20,20 +20,27 @@ import jakarta.persistence.Table;
 @Table(name = "venta_detalle")
 public class VentaDetalle {
 
-	@EmbeddedId
-	private VentaDetalleId id = new VentaDetalleId();
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	Long id;
 
-	@MapsId("ventaId")
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "venta_id", nullable = false)
+	
+    // La FK real que se persiste
+    @Column(name = "venta_id", nullable = false)
+    private Long ventaId;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "venta_id", insertable = false, updatable = false)
 	private Venta venta;
 
-	@Column(name = "linea", nullable = false, insertable = false, updatable = false)
-	private Integer linea;
+    // La FK real que se persiste
+    @Column(name = "producto_id", nullable = false)
+    private String productoId;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "producto_id", nullable = false)
-	private Producto producto;
+    // Asociación de solo lectura (no escribe la FK)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "producto_id", insertable = false, updatable = false)
+    private Producto producto;
 
 	@Column(name = "cantidad", precision = 18, scale = 4, nullable = false)
 	private BigDecimal cantidad;
@@ -71,38 +78,25 @@ public class VentaDetalle {
 	@OneToMany(mappedBy = "ventaDetalle", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<VentaDetallePieza> piezasUsadas = new ArrayList<>();
 
-	public void setVenta(Venta venta) {
-		this.venta = venta;
-		this.id.setVentaId(venta.getId());
-	}
 
-	public void setLinea(int linea) {
-		this.linea = linea;
-		this.id.setLinea(linea);
-	}
-
-	public VentaDetalleId getId() {
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(VentaDetalleId id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
-
-	public Integer getLinea() {
-		return linea;
+	
+	public String getProductoId() {
+		return productoId;
 	}
 
-	public void setLinea(Integer linea) {
-		this.linea = linea;
+	public void setProductoId(String productoId) {
+		this.productoId = productoId;
 	}
 
 	public Producto getProducto() {
 		return producto;
-	}
-
-	public void setProducto(Producto producto) {
-		this.producto = producto;
 	}
 
 	public BigDecimal getCantidad() {
@@ -127,6 +121,16 @@ public class VentaDetalle {
 
 	public void setTotalLinea(BigDecimal totalLinea) {
 		this.totalLinea = totalLinea;
+	}
+	
+	
+
+	public Long getVentaId() {
+		return ventaId;
+	}
+
+	public void setVentaId(Long ventaId) {
+		this.ventaId = ventaId;
 	}
 
 	public Venta getVenta() {

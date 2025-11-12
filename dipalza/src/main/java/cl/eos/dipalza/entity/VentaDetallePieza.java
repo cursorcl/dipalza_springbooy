@@ -12,7 +12,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinColumns;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
@@ -28,13 +27,12 @@ public class VentaDetallePieza {
 
 	// Relación con la línea de venta (PK compuesta venta_id + linea)
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumns({ @JoinColumn(name = "venta_id", referencedColumnName = "venta_id", nullable = false),
-			@JoinColumn(name = "linea", referencedColumnName = "linea", nullable = false) })
+	@JoinColumn(name = "id_detalle_venta", referencedColumnName = "id", nullable = false)
 	private VentaDetalle ventaDetalle;
 
 	// Asociación al inventario por pieza (tabla numerados), columna FK inv_id
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "inv_id", unique=true, nullable = false)
+	@JoinColumn(name = "inv_id_pieza", unique=true, nullable = false)
 	private Numerados numerado;
 
 	@Column(name = "peso", precision = 19, scale = 4, nullable = false)

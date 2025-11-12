@@ -12,10 +12,9 @@ import org.springframework.stereotype.Repository;
 
 import cl.eos.dipalza.entity.Venta; // <-- ajuste este import si su entity está en otro paquete
 import cl.eos.dipalza.entity.VentaDetalle;
-import cl.eos.dipalza.entity.ids.VentaDetalleId;
 
 @Repository
-public interface VentaDetalleRepository extends JpaRepository<VentaDetalle, VentaDetalleId>, JpaSpecificationExecutor<Venta> {
+public interface VentaDetalleRepository extends JpaRepository<VentaDetalle, Long>, JpaSpecificationExecutor<Venta> {
 
 	
     @Query("SELECT vd FROM VentaDetalle vd LEFT JOIN FETCH vd.piezasUsadas WHERE vd.venta.id = :ventaId")

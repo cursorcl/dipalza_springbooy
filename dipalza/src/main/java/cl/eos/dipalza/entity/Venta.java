@@ -58,6 +58,10 @@ public class Venta {
 	@Column(name = "fecha", nullable = false)
 	private LocalDate fecha;
 
+
+	@Column(name = "total_neto", precision = 18, scale = 2, nullable = false)
+	private BigDecimal totalNeto;
+	
 	@Column(name = "total_descuento", precision = 18, scale = 2, nullable = false)
 	private BigDecimal totalDescuento;
 
@@ -116,6 +120,16 @@ public class Venta {
 	public void setFecha(LocalDate fecha) {
 		this.fecha = fecha;
 	}
+	
+	
+
+	public BigDecimal getTotalNeto() {
+		return totalNeto;
+	}
+
+	public void setTotalNeto(BigDecimal totalNeto) {
+		this.totalNeto = totalNeto;
+	}
 
 	public BigDecimal getTotalDescuento() {
 		return totalDescuento;
@@ -165,9 +179,6 @@ public class Venta {
 		this.detalles = detalles;
 	}
 	
-	
-	
-	
 	public CondicionVenta getCondicionVenta() {
 		return condicionVenta;
 	}
@@ -177,16 +188,12 @@ public class Venta {
 	}
 
 	public void addDetalle(VentaDetalle d) {
-        d.setVenta(this);
-        d.getId().setVentaId(this.id); // si id aún no existe (transient), la PK compuesta se completará al persistir
-        d.setLinea(detalles.size() + 1);
+        d.setVentaId(this.getId());
         detalles.add(d);
     }
 	
 	public void updateDetalle(VentaDetalle d) {
-        d.setVenta(this);
-        d.getId().setVentaId(this.id); // si id aún no existe (transient), la PK compuesta se completará al persistir
-        detalles.set(d.getLinea() - 1 , d);
+        d.setVentaId(this.getId());
 	}
 	
 	public void removeDetalle(VentaDetalle d) {

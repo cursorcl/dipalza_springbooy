@@ -1,17 +1,24 @@
-// file: cl/eos/dipalza/model/venta/VentaDetallePiezaResponseDTO.java
-package cl.eos.dipalza.model.venta.response;
+// file: cl/eos/dipalza/model/venta/VentaDetallePiezaCreateDTO.java
+package cl.eos.dipalza.model.venta;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public class VentaDetallePiezaResponseDTO implements Serializable {
+public class VentaDetallePiezaDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
-	private Long id;
+	private Long id; // obligatorio (único global)
 	private BigDecimal peso; // opcional
-	private LocalDate creadoEn; // timestamp
+	private Long invId;
+	private LocalDate creadoEn;
+	
 
-	public VentaDetallePiezaResponseDTO() {
+	public VentaDetallePiezaDTO() {
+	}
+
+	public VentaDetallePiezaDTO(Long id, BigDecimal peso) {
+		this.id = id;
+		this.peso = peso;
 	}
 
 	public Long getId() {
@@ -30,6 +37,14 @@ public class VentaDetallePiezaResponseDTO implements Serializable {
 		this.peso = peso;
 	}
 
+	public Long getInvId() {
+		return invId;
+	}
+
+	public void setInvId(Long invId) {
+		this.invId = invId;
+	}
+
 	public LocalDate getCreadoEn() {
 		return creadoEn;
 	}
@@ -37,4 +52,6 @@ public class VentaDetallePiezaResponseDTO implements Serializable {
 	public void setCreadoEn(LocalDate creadoEn) {
 		this.creadoEn = creadoEn;
 	}
+	
+	
 }

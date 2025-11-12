@@ -21,14 +21,10 @@ import cl.eos.dipalza.entity.VentaDetallePieza;
 import cl.eos.dipalza.entity.ids.ClienteId;
 import cl.eos.dipalza.entity.ids.VendedorId;
 import cl.eos.dipalza.mapper.VentaMapper;
-import cl.eos.dipalza.mapper.VentaMapperCreation;
-import cl.eos.dipalza.model.venta.crear.VentaCreateDTO;
-import cl.eos.dipalza.model.venta.modificar.VentaDetallePiezaUpdateDTO;
-import cl.eos.dipalza.model.venta.modificar.VentaDetalleUpdateDTO;
-import cl.eos.dipalza.model.venta.modificar.VentaUpdateDTO;
-import cl.eos.dipalza.model.venta.response.VentaDetalleHeaderDTO;
-import cl.eos.dipalza.model.venta.response.VentaHeaderDTO;
-import cl.eos.dipalza.model.venta.response.VentaResponseDTO;
+import cl.eos.dipalza.model.venta.VentaDTO;
+import cl.eos.dipalza.model.venta.VentaDetalleDTO;
+import cl.eos.dipalza.model.venta.VentaDetallePiezaDTO;
+import cl.eos.dipalza.repository.ProductoRepository;
 import cl.eos.dipalza.repository.VentaDetallePiezaRepository;
 import cl.eos.dipalza.repository.VentaDetalleRepository;
 import cl.eos.dipalza.repository.VentaRepository;
@@ -50,53 +46,52 @@ public class VentaService {
 	private final VentaDetallePiezaRepository ventaDetallePiezaRepository;
 
 	public VentaService(VentaRepository ventaRepository, VentaDetalleRepository ventaDetalleRepository,
-			VentaDetallePiezaRepository ventaDetallePiezaRepository) {
+			VentaDetallePiezaRepository ventaDetallePiezaRepository, ProductoRepository productoRepository) {
 		this.ventaRepository = ventaRepository;
 		this.ventaDetalleRepository = ventaDetalleRepository;
 		this.ventaDetallePiezaRepository = ventaDetallePiezaRepository;
 	}
 
-	public VentaResponseDTO crearVenta(VentaCreateDTO dto) {
-		// Validación básica
-		if (dto.getDetalles() == null || dto.getDetalles().isEmpty()) {
-			throw new IllegalArgumentException("La venta debe contener al menos una línea");
-		}
+	public VentaDTO crearVenta(VentaDTO dto) {
 
 		// Usando el mapper para convertir DTO a entidad
-		Venta venta = VentaMapperCreation.toVentaEntity(dto);
+		Venta venta = VentaMapper.toVentaEntity(dto);
 
 		// Guardar la venta en la base de datos (esto asigna un id a la venta)
 		venta = ventaRepository.save(venta);
 
-		// Luego, los detalles de la venta se guardan con el id generado
-		for (VentaDetalle detalle : venta.getDetalles()) {
-			detalle.setVenta(venta); // Establecemos la relación de la venta con cada detalle
-		}
+		// En la creación, puede venir sin los registros de venta.
+		if (dto.getDetalles() != null && !dto.getDetalles().isEmpty()) {
+			// Luego, los detalles de la venta se guardan con el id generado
+			for (VentaDetalle detalle : venta.getDetalles()) {
+				detalle.setVentaId(venta.getId()); // Establecemos la relación de la venta con cada detalle
+			}
 
-		// Guardar los detalles en la base de datos (debe estar relacionado con la
-		// venta)
-		venta.getDetalles().forEach(detalle -> ventaDetalleRepository.save(detalle));
+			// Guardar los detalles en la base de datos (debe estar relacionado con la
+			// venta)
+			venta.getDetalles().forEach(detalle -> ventaDetalleRepository.save(detalle));
 
-		// Guardar los detalles en la base de datos (debe estar relacionado con la
-		// venta)
-		for (VentaDetalle detalle : venta.getDetalles()) {
-			// Guardar cada detalle de venta
-			ventaDetalleRepository.save(detalle);
+			// Guardar los detalles en la base de datos (debe estar relacionado con la
+			// venta)
+			for (VentaDetalle detalle : venta.getDetalles()) {
+				// Guardar cada detalle de venta
+				ventaDetalleRepository.save(detalle);
 
-			// Guardar las piezas asociadas a ese detalle
-			if (detalle.getPiezasUsadas() != null) {
-				for (VentaDetallePieza pieza : detalle.getPiezasUsadas()) {
-					pieza.setVentaDetalle(detalle); // Asignar la relación entre pieza y detalle
-					ventaDetallePiezaRepository.save(pieza); // Guardar la pieza
+				// Guardar las piezas asociadas a ese detalle
+				if (detalle.getPiezasUsadas() != null) {
+					for (VentaDetallePieza pieza : detalle.getPiezasUsadas()) {
+						pieza.setVentaDetalle(detalle); // Asignar la relación entre pieza y detalle
+						ventaDetallePiezaRepository.save(pieza); // Guardar la pieza
+					}
 				}
 			}
 		}
 
 		// Retornar el DTO de respuesta
-		return VentaMapper.toResponseDTO(venta);
+		return VentaMapper.toVentaDTO(venta);
 	}
 
-	public VentaResponseDTO actualizarVenta(Long id, VentaUpdateDTO dto) {
+	public VentaDTO actualizarVenta(Long id, VentaDTO dto) {
 		Objects.requireNonNull(dto, "dto no puede ser null");
 		Objects.requireNonNull(id, "id no puede ser null");
 
@@ -106,7 +101,7 @@ public class VentaService {
 		// Cabecera
 		if (dto.getFecha() != null)
 			venta.setFecha(dto.getFecha());
-		
+
 		if (dto.getRutCliente() != null && dto.getCodigoCliente() != null) {
 			ClienteId clienteId = new ClienteId(dto.getRutCliente(), dto.getCodigoCliente());
 			Cliente cliente = em.getReference(Cliente.class, clienteId);
@@ -128,53 +123,53 @@ public class VentaService {
 		recalcularTotalesVenta(venta);
 
 		venta = ventaRepository.save(venta);
-		return VentaMapper.toResponseDTO(venta);
+		return VentaMapper.toVentaDTO(venta);
 	}
 
-	private void syncDetalles(Venta venta, List<VentaDetalleUpdateDTO> detallesDto) {
-		Map<Integer, VentaDetalle> existentes = venta.getDetalles().stream()
-				.collect(Collectors.toMap(VentaDetalle::getLinea, Function.identity()));
+	private void syncDetalles(Venta venta, List<VentaDetalleDTO> detallesDto) {
+		Map<Long, VentaDetalle> existentes = venta.getDetalles().stream()
+				.collect(Collectors.toMap(VentaDetalle::getId, Function.identity()));
 
 		List<VentaDetalle> nuevos = new ArrayList<>();
+		if (detallesDto != null) {
+			for (VentaDetalleDTO dto : detallesDto) {
+				VentaDetalle detalle = existentes.remove(dto.getId());
 
-		for (VentaDetalleUpdateDTO dto : detallesDto) {
-			VentaDetalle detalle = existentes.remove(dto.getLinea());
+				if (detalle == null) {
+					// Nuevo
+					detalle = new VentaDetalle();
+					detalle.setVentaId(venta.getId());
+				}
 
-			if (detalle == null) {
-				// Nuevo
-				detalle = new VentaDetalle();
-				detalle.setVenta(venta);
-				detalle.setLinea(dto.getLinea());
+				// Campos editables
+				detalle.setCantidad(dto.getCantidad());
+				detalle.setPrecioUnitario(dto.getPrecioUnitario());
+				detalle.setTotalLinea(dto.getTotalLinea());
+				detalle.setPorcentajeDescuento(dto.getPorcentajeDescuento());
+				detalle.setPorcentajeIla(dto.getPorcentajeIla());
+				detalle.setPorcentajeIva(dto.getPorcentajeIva());
+
+				// Sincroniza las piezas
+				syncPiezas(detalle, dto.getPiezasDetalle());
+
+				nuevos.add(detalle);
 			}
 
-			// Campos editables
-			detalle.setCantidad(dto.getCantidad());
-			detalle.setPrecioUnitario(dto.getPrecioUnitario());
-			detalle.setTotalLinea(dto.getTotalLinea());
-			detalle.setPorcentajeDescuento(dto.getPorcentajeDescuento());
-			detalle.setPorcentajeIla(dto.getPorcentajeIla());
-			detalle.setPorcentajeIva(dto.getPorcentajeIva());
-
-			// Sincroniza las piezas
-			syncPiezas(detalle, dto.getPiezasDetalle());
-
-			nuevos.add(detalle);
+			// Los que quedaron en el mapa no están en el DTO → eliminar
+			existentes.values().forEach(venta.getDetalles()::remove);
 		}
-
-		// Los que quedaron en el mapa no están en el DTO → eliminar
-		existentes.values().forEach(venta.getDetalles()::remove);
-
 		// Reemplaza por la nueva lista sincronizada
-		venta.setDetalles(nuevos);
+		venta.getDetalles().clear();
+		venta.getDetalles().addAll(nuevos);
 	}
 
-	private void syncPiezas(VentaDetalle detalle, List<VentaDetallePiezaUpdateDTO> piezasDto) {
+	private void syncPiezas(VentaDetalle detalle, List<VentaDetallePiezaDTO> piezasDto) {
 		Map<Long, VentaDetallePieza> existentes = detalle.getPiezasUsadas().stream().filter(p -> p.getId() != null)
 				.collect(Collectors.toMap(VentaDetallePieza::getId, Function.identity()));
 
 		List<VentaDetallePieza> nuevas = new ArrayList<>();
 
-		for (VentaDetallePiezaUpdateDTO dto : piezasDto) {
+		for (VentaDetallePiezaDTO dto : piezasDto) {
 			VentaDetallePieza pieza = (dto.getId() != null) ? existentes.remove(dto.getId()) : new VentaDetallePieza();
 
 			pieza.setVentaDetalle(detalle);
@@ -207,31 +202,23 @@ public class VentaService {
 	}
 
 	// Obtener todas las ventas de un vendedor en una fecha específica
-    public List<VentaResponseDTO> obtenerVentasPorVendedorYFecha(String vendedorCodigo, LocalDate fecha) {
-        List<Venta> ventas = ventaRepository.findVentasByVendedorAndFecha(vendedorCodigo, fecha);
-        
-        return ventas.stream().map(v -> VentaMapper.toResponseDTO(v)).toList();
-    }
+	public List<VentaDTO> obtenerVentasPorVendedorYFecha(String vendedorCodigo, LocalDate fecha) {
+		List<Venta> ventas = ventaRepository.findVentasByVendedorAndFecha(vendedorCodigo, fecha);
 
-    // Obtener la última venta de un cliente
-    public VentaResponseDTO obtenerUltimaVentaDeCliente(String rutCliente) {
-        Venta ultimaVenta = ventaRepository.findLastVentaByCliente(rutCliente);
-        
-        return ultimaVenta == null  ? null : VentaMapper.toResponseDTO(ultimaVenta);
-    }
+		return ventas.stream().map(v -> VentaMapper.toVentaDTO(v)).toList();
+	}
 
-    
-    public List<VentaHeaderDTO> obtenerUltimaVentaDeVendendorDia(String codigoVendedor, LocalDate dia) {
-    	List<Venta> ventas = ventaRepository.findHeaderByVendedorAndDia(codigoVendedor, dia);
-        
-    	return ventas.stream().map(v -> VentaMapper.toHeaderDTO(v)).toList();
-    }
-	
-    
-    public List<VentaDetalleHeaderDTO> obtenerDetallePorVenta(Long ventaId) {
-        List<VentaDetalle> detalles = ventaDetalleRepository.findByVentaId(ventaId);
-        return detalles.stream().map(d -> VentaMapper.toVentaDetalleHeaderResponseDTO(d)).toList();
-    }
+	// Obtener la última venta de un cliente
+	public VentaDTO obtenerUltimaVentaDeCliente(String rutCliente) {
+		Venta ultimaVenta = ventaRepository.findLastVentaByCliente(rutCliente);
+
+		return ultimaVenta == null ? null : VentaMapper.toVentaDTO(ultimaVenta);
+	}
+
+	public List<VentaDetalleDTO> obtenerDetallePorVenta(Long ventaId) {
+		List<VentaDetalle> detalles = ventaDetalleRepository.findByVentaId(ventaId);
+		return detalles.stream().map(d -> VentaMapper.toVentaDetalleDTO(d)).toList();
+	}
 
 	private static BigDecimal nvl(BigDecimal x) {
 		return x == null ? BigDecimal.ZERO : x;
@@ -293,5 +280,48 @@ public class VentaService {
 	private static BigDecimal scale(BigDecimal x) {
 		// Ajuste a la escala que maneje su BD (p.ej., money 4 decimales)
 		return x.setScale(4, BigDecimal.ROUND_HALF_UP);
+	}
+
+	// ===============================
+	// DETALLES
+	// ===============================
+	public Venta eliminarItemVenta(Long id) {
+		Objects.requireNonNull(id, "id no puede ser null");
+
+		VentaDetalle ventaDetalle = ventaDetalleRepository.findById(id)
+				.orElseThrow(() -> new EntityNotFoundException("Item de Venta no encontrado: " + id));
+
+		Venta venta = ventaDetalle.getVenta();
+
+		venta.removeDetalle(ventaDetalle);
+		recalcularTotalesVenta(venta);
+
+		ventaRepository.save(venta);
+
+		return venta;
+	}
+	
+	public Venta grabarVentaDetalle(VentaDetalleDTO ventaDetalleDTO) {
+		Objects.requireNonNull(ventaDetalleDTO, "ventaDetalle no puede ser null");
+		Objects.requireNonNull(ventaDetalleDTO.getVentaId(), "El Identificador de la venta no puede ser null");
+		
+		Venta venta = ventaRepository.findById(ventaDetalleDTO.getVentaId()).orElseThrow(() -> new EntityNotFoundException("Venta no encontrada: " + ventaDetalleDTO.getVentaId()));
+
+		VentaDetalle  ventaDetalle = VentaMapper.toVentaDetalleEntity(ventaDetalleDTO, venta.getId());
+			
+		// Es nueva
+		if(ventaDetalleDTO.getId() == null || ventaDetalleDTO.getId().longValue() == -1)
+		{
+			venta.getDetalles().add(ventaDetalle);
+			venta = ventaRepository.save(venta);
+			return venta;
+		}
+			
+		VentaDetalle oldVentaDetalle = ventaDetalleRepository.findById(ventaDetalleDTO.getId())
+				.orElseThrow(() -> new EntityNotFoundException("Item de Venta no encontrado: " + ventaDetalleDTO.getId()));
+		venta.getDetalles().replaceAll(d -> Objects.equals(d.getId(), oldVentaDetalle.getId()) ? ventaDetalle : d);
+		venta = ventaRepository.save(venta);
+		return venta;
+		
 	}
 }
