@@ -14,6 +14,10 @@ public class CondicionVenta {
 	private String codigo;
 	@Column(name = "descripcion", length = 50, nullable = false)
 	private String descripcion;
+	
+	@Column(name = "dias")
+	private Integer dias;
+	
 	public String getCodigo() {
 		return codigo;
 	}
@@ -25,6 +29,12 @@ public class CondicionVenta {
 	}
 	public void setDescripcion(String descripcion) {
 		this.descripcion = descripcion;
+	}
+	public Integer getDias() {
+		return dias;
+	}
+	public void setDias(Integer dias) {
+		this.dias = dias;
 	}
 	
 	

@@ -3,6 +3,7 @@ package cl.eos.dipalza.model;
 public class CondicionVentaDTO {
 	private String codigo;
 	private String descripcion;
+	private Integer dias;
 
 	public CondicionVentaDTO() {
 	}
@@ -22,4 +23,14 @@ public class CondicionVentaDTO {
 	public void setDescripcion(String descripcion) {
 		this.descripcion = descripcion;
 	}
+
+	public Integer getDias() {
+		return dias;
+	}
+
+	public void setDias(Integer dias) {
+		this.dias = dias;
+	}
+	
+	
 }

@@ -1,21 +1,16 @@
 package cl.eos.dipalza.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-
+@Setter
+@Getter
 @Entity
 @Table(name = "venta_detalle")
 public class VentaDetalle {
@@ -24,18 +19,13 @@ public class VentaDetalle {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	Long id;
 
-	
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "venta_id", nullable = false)
+    @JsonBackReference
     private Venta venta;
 
-    // La FK real que se persiste
-    @Column(name = "producto_id", nullable = false)
-    private String productoId;
-
-    // Asociación de solo lectura (no escribe la FK)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "producto_id", insertable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "producto_id", nullable = false) 
     private Producto producto;
 
 	@Column(name = "cantidad", precision = 18, scale = 4, nullable = false)
@@ -71,18 +61,11 @@ public class VentaDetalle {
 	@Column(name = "unidad")
 	private String unidad;
 
-	@OneToMany(mappedBy = "ventaDetalle", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToMany(mappedBy = "ventaDetalle", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
 	private List<VentaDetallePieza> piezasUsadas = new ArrayList<>();
 
 
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-	
+    /*
 	public String getProductoId() {
 		return productoId;
 	}
@@ -90,119 +73,10 @@ public class VentaDetalle {
 	public void setProductoId(String productoId) {
 		this.productoId = productoId;
 	}
+	*/
 
-	public Producto getProducto() {
-		return producto;
-	}
 
-	public BigDecimal getCantidad() {
-		return cantidad;
-	}
-
-	public void setCantidad(BigDecimal cantidad) {
-		this.cantidad = cantidad;
-	}
-
-	public BigDecimal getPrecioUnitario() {
-		return precioUnitario;
-	}
-
-	public void setPrecioUnitario(BigDecimal precioUnitario) {
-		this.precioUnitario = precioUnitario;
-	}
-
-	public BigDecimal getTotalLinea() {
-		return totalLinea;
-	}
-
-	public void setTotalLinea(BigDecimal totalLinea) {
-		this.totalLinea = totalLinea;
-	}
-	
-	
-
-	public Venta getVenta() {
-		return venta;
-	}
-
-	public void setVenta(Venta venta) {
-		this.venta = venta;
-	}
-
-	public BigDecimal getPorcentajeDescuento() {
-		return porcentajeDescuento;
-	}
-
-	public void setPorcentajeDescuento(BigDecimal porcentajeDescuento) {
-		this.porcentajeDescuento = porcentajeDescuento;
-	}
-
-	public BigDecimal getTotalDescuento() {
-		return totalDescuento;
-	}
-
-	public void setTotalDescuento(BigDecimal totalDescuento) {
-		this.totalDescuento = totalDescuento;
-	}
-
-	public BigDecimal getPorcentajeIla() {
-		return porcentajeIla;
-	}
-
-	public void setPorcentajeIla(BigDecimal porcentajeIla) {
-		this.porcentajeIla = porcentajeIla;
-	}
-
-	public BigDecimal getTotalIla() {
-		return totalIla;
-	}
-
-	public void setTotalIla(BigDecimal totalIla) {
-		this.totalIla = totalIla;
-	}
-
-	public BigDecimal getPorcentajeIva() {
-		return porcentajeIva;
-	}
-
-	public void setPorcentajeIva(BigDecimal porcentajeIva) {
-		this.porcentajeIva = porcentajeIva;
-	}
-
-	public BigDecimal getTotalIva() {
-		return totalIva;
-	}
-
-	public void setTotalIva(BigDecimal totalIva) {
-		this.totalIva = totalIva;
-	}
-
-	public Integer getPiezas() {
-		return piezas;
-	}
-
-	public void setPiezas(Integer piezas) {
-		this.piezas = piezas;
-	}
-
-	public List<VentaDetallePieza> getPiezasUsadas() {
-		return piezasUsadas;
-	}
-
-	public void setPiezasUsadas(List<VentaDetallePieza> piezasUsadas) {
-		this.piezasUsadas = piezasUsadas;
-	}
-
-	public String getUnidad() {
-		return unidad;
-	}
-
-	public void setUnidad(String unidad) {
-		this.unidad = unidad;
-	}
-
-	
-	@Override
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

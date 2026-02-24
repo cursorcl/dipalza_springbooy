@@ -29,6 +29,10 @@ public class ProductoDTO {
 	
 	private BigDecimal pieces;
 	
+	private BigDecimal stockVentas;
+	
+	private BigDecimal piezasVentas;
+	
 	private List<NumeradoDTO> numerados = new ArrayList<>();
 
 	public String getArticulo() {
@@ -128,4 +132,22 @@ public class ProductoDTO {
 		this.pieces = pieces;
 	}
 
+	public BigDecimal getStockVentas() {
+		return stockVentas;
+	}
+
+	public void setStockVentas(BigDecimal stockVentas) {
+		this.stockVentas = stockVentas;
+	}
+
+	public BigDecimal getPiezasVentas() {
+		return piezasVentas;
+	}
+
+	public void setPiezasVentas(BigDecimal piezasVentas) {
+		this.piezasVentas = piezasVentas;
+	}
+
+	
+	
 }

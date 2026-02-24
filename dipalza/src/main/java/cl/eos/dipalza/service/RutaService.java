@@ -5,22 +5,27 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import cl.eos.dipalza.entity.Conduccion;
 import cl.eos.dipalza.entity.Ruta;
 import cl.eos.dipalza.mapper.RutaMapper;
 import cl.eos.dipalza.model.RutaDTO;
+import cl.eos.dipalza.repository.ConduccionRepository;
 import cl.eos.dipalza.repository.RutaRepository;
 
 @Service
 public class RutaService {
 
-    @Autowired
-    private RutaRepository rutaRepository;
+    private final RutaRepository rutaRepository;
+    private final RutaMapper rutaMapper;
+    private final ConduccionRepository conduccionRepository;
     
-    @Autowired
-    private RutaMapper rutaMapper;
+    public RutaService(RutaRepository rutaRepository, RutaMapper rutaMapper, ConduccionRepository conduccionRepository) {
+    	this.rutaMapper = rutaMapper;
+    	this.rutaRepository = rutaRepository;
+    	this.conduccionRepository = conduccionRepository;
+	}
 
     public List<RutaDTO> getAllRutas() {
         return rutaRepository.findAll()
@@ -36,7 +41,11 @@ public class RutaService {
     }
 
     public RutaDTO createOrUpdateRuta(RutaDTO rutaDTO) {
-        Ruta ruta = rutaMapper.toEntity(rutaDTO);
+    	
+    	List<Conduccion> conducciones = this.conduccionRepository.findAll();
+    	Conduccion conduccion = conducciones.stream().filter(c -> c.getCodigo().equals(rutaDTO.getCodigoConduccion())).findFirst().orElse(conducciones.getFirst());
+    	
+        Ruta ruta = rutaMapper.toEntity(rutaDTO, conduccion);
         Ruta savedRuta = rutaRepository.save(ruta);
         return rutaMapper.toDTO(savedRuta);
     }

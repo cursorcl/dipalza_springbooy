@@ -8,15 +8,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import cl.eos.dipalza.entity.Cliente;
 import cl.eos.dipalza.entity.CondicionVenta;
+import cl.eos.dipalza.entity.EstadoVenta;
 import cl.eos.dipalza.entity.Numerado;
+import cl.eos.dipalza.entity.Producto;
 import cl.eos.dipalza.entity.Ruta;
 import cl.eos.dipalza.entity.Vendedor;
 import cl.eos.dipalza.entity.Venta;
@@ -26,6 +30,7 @@ import cl.eos.dipalza.entity.ids.ClienteId;
 import cl.eos.dipalza.entity.ids.VendedorId;
 import cl.eos.dipalza.exceptions.MissingDataException;
 import cl.eos.dipalza.mapper.VentaMapper;
+import cl.eos.dipalza.model.ClienteIdQueryDTO;
 import cl.eos.dipalza.model.venta.VentaDTO;
 import cl.eos.dipalza.model.venta.VentaDetalleDTO;
 import cl.eos.dipalza.model.venta.VentaDetallePiezaDTO;
@@ -38,6 +43,8 @@ import cl.eos.dipalza.repository.VendedorRepository;
 import cl.eos.dipalza.repository.VentaDetallePiezaRepository;
 import cl.eos.dipalza.repository.VentaDetalleRepository;
 import cl.eos.dipalza.repository.VentaRepository;
+import cl.eos.dipalza.specifications.VentaFilter;
+import cl.eos.dipalza.specifications.VentaSpecifications;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
@@ -47,7 +54,7 @@ import jakarta.transaction.Transactional;
 @Transactional
 public class VentaService {
 
-    private final VendedorRepository vendedorRepository;
+	private final VendedorRepository vendedorRepository;
 
 	private final CondicionVentaRepository condicionVentaRepository;
 
@@ -55,7 +62,7 @@ public class VentaService {
 
 	private final ClienteRepository clienteRepository;
 
-	private final NumeradoRepository numeradoRepository;
+//	private final NumeradoRepository numeradoRepository;
 
 	// inyección gestionada por Spring
 	@PersistenceContext
@@ -65,19 +72,21 @@ public class VentaService {
 	private final VentaDetalleRepository ventaDetalleRepository;
 	private final VentaDetallePiezaRepository ventaDetallePiezaRepository;
 
+	private ProductoRepository productoRepository;
+
 	public VentaService(VentaRepository ventaRepository, VentaDetalleRepository ventaDetalleRepository,
 			VentaDetallePiezaRepository ventaDetallePiezaRepository, ProductoRepository productoRepository,
 			NumeradoRepository numeradoRepository, ClienteRepository clienteRepository, RutaRepository rutaRepository,
-			VendedorRepository vendedorRepository,
-			CondicionVentaRepository condicionVentaRepository) {
+			VendedorRepository vendedorRepository, CondicionVentaRepository condicionVentaRepository) {
 		this.ventaRepository = ventaRepository;
 		this.ventaDetalleRepository = ventaDetalleRepository;
 		this.ventaDetallePiezaRepository = ventaDetallePiezaRepository;
-		this.numeradoRepository = numeradoRepository;
+//		this.numeradoRepository = numeradoRepository;
 		this.clienteRepository = clienteRepository;
 		this.rutaRepository = rutaRepository;
 		this.condicionVentaRepository = condicionVentaRepository;
 		this.vendedorRepository = vendedorRepository;
+		this.productoRepository = productoRepository;
 	}
 
 	public VentaDTO crearVenta(VentaDTO dto) {
@@ -104,17 +113,17 @@ public class VentaService {
 		if (cliente.isEmpty())
 			throw new EntityNotFoundException("El cliente especificado no existe!!");
 
-		Optional<Vendedor> vendedor = this.vendedorRepository.findById(new VendedorId(dto.getCodigoVendedor(), dto.getTipoVendedor()));
-		if(vendedor.isEmpty())
+		Optional<Vendedor> vendedor = this.vendedorRepository
+				.findById(new VendedorId(dto.getCodigoVendedor(), dto.getTipoVendedor()));
+		if (vendedor.isEmpty())
 			throw new EntityNotFoundException("El vendedor especificado no existe!!");
-		
 
 		Optional<Ruta> ruta = this.rutaRepository.findById(dto.getCodigoRuta());
-		if(ruta.isEmpty())
+		if (ruta.isEmpty())
 			throw new EntityNotFoundException("La ruta especificada no existe!!");
 
 		Optional<CondicionVenta> condicionVenta = this.condicionVentaRepository.findById(dto.getCodigoCondicionVenta());
-		if(condicionVenta.isEmpty())
+		if (condicionVenta.isEmpty())
 			throw new EntityNotFoundException("La condición de venta especificada no existe!!");
 
 		// Usando el mapper para convertir DTO a entidad
@@ -125,6 +134,7 @@ public class VentaService {
 
 		// En la creación, puede venir sin los registros de venta.
 		if (dto.getDetalles() != null && !dto.getDetalles().isEmpty()) {
+
 			// Luego, los detalles de la venta se guardan con el id generado
 			for (VentaDetalle detalle : venta.getDetalles()) {
 				detalle.setVenta(venta); // Establecemos la relación de la venta con cada detalle
@@ -143,11 +153,6 @@ public class VentaService {
 
 						ventaDetallePiezaRepository.save(pieza); // Guardar la pieza
 
-						Optional<Numerado> numerado = this.numeradoRepository.findById(pieza.getNumerado().getId());
-						if (numerado.isPresent()) {
-							numerado.get().setEstado("V");
-							this.numeradoRepository.save(numerado.get());
-						}
 					}
 				}
 			}
@@ -182,6 +187,16 @@ public class VentaService {
 			Ruta ruta = em.getReference(Ruta.class, dto.getCodigoRuta());
 			venta.setRuta(ruta);
 		}
+		
+		if(dto.getCodigoCondicionVenta() != null)
+		{
+			CondicionVenta condicionVenta = em.getReference(CondicionVenta.class, dto.getCodigoCondicionVenta());
+			venta.setCondicionVenta(condicionVenta);
+		}
+		if(dto.getEstadoVenta() != null)
+		{
+			venta.setEstado(EstadoVenta.estadoVentaFromName(dto.getEstadoVenta()));
+		}
 
 		syncDetalles(venta, dto.getDetalles());
 
@@ -214,6 +229,7 @@ public class VentaService {
 				detalle.setPorcentajeDescuento(dto.getPorcentajeDescuento());
 				detalle.setPorcentajeIla(dto.getPorcentajeIla());
 				detalle.setPorcentajeIva(dto.getPorcentajeIva());
+				detalle.setPiezas(dto.getPiezas());
 
 				// Sincroniza las piezas
 				syncPiezas(detalle, dto.getPiezasDetalle());
@@ -231,8 +247,6 @@ public class VentaService {
 
 	private void syncPiezas(VentaDetalle detalle, List<VentaDetallePiezaDTO> piezasDto) {
 		// 1. Obtener la referencia a la lista VIGILADA por Hibernate
-		// NO crear una lista nueva tipo 'List<...> nuevas = new ArrayList<>()' para
-		// reemplazarla después.
 		List<VentaDetallePieza> piezasActuales = detalle.getPiezasUsadas();
 
 		if (piezasDto == null || piezasDto.isEmpty()) {
@@ -244,30 +258,6 @@ public class VentaService {
 		// borrar/recrear)
 		Map<Long, VentaDetallePieza> existentes = piezasActuales.stream().filter(p -> p.getId() != null)
 				.collect(Collectors.toMap(VentaDetallePieza::getId, Function.identity()));
-
-		// 3. Set de IDs que vienen del front (para saber cuáles borrar)
-		Set<Long> idsEnDto = piezasDto.stream().map(VentaDetallePiezaDTO::getId).filter(Objects::nonNull)
-				.collect(Collectors.toSet());
-
-		// A. Eliminar (Remove)
-		// Primero rescato los id de inventario de las piezas que debo eliminar
-		// para poder cambiar su estado a disponible
-		List<Long> idsNumerados = piezasActuales.stream()
-				.filter(p -> p.getId() != null && !idsEnDto.contains(p.getId())).map(p -> p.getNumerado().getId())
-				.toList();
-		// Eliminamos de la lista 'piezasActuales' lo que no viene en el DTO.
-		// Al hacer esto sobre la lista gestionada, Hibernate disparará el DELETE en la
-		// BD.
-		piezasActuales.removeIf(p -> p.getId() != null && !idsEnDto.contains(p.getId()));
-
-		// Cambio el estado de todos los numerados
-		for (Long id : idsNumerados) {
-			Optional<Numerado> numerado = this.numeradoRepository.findById(id);
-			if (numerado.isEmpty())
-				continue;
-			numerado.get().setEstado("D");
-			this.numeradoRepository.save(numerado.get());
-		}
 
 		// B. Agregar o Actualizar
 		for (VentaDetallePiezaDTO dto : piezasDto) {
@@ -301,8 +291,6 @@ public class VentaService {
 			}
 		}
 
-		// NO HACER ESTO JAMÁS:
-		// detalle.setPiezasUsadas(nuevas);
 	}
 
 	public boolean eliminarVenta(Long id) {
@@ -325,15 +313,23 @@ public class VentaService {
 	}
 
 	// Obtener la última venta de un cliente
-	public VentaDTO obtenerUltimaVentaDeCliente(String rutCliente) {
-		Venta ultimaVenta = ventaRepository.findLastVentaByCliente(rutCliente);
-
-		return ultimaVenta == null ? null : VentaMapper.toVentaDTO(ultimaVenta);
+	public VentaDTO obtenerUltimaVentaDeCliente(ClienteIdQueryDTO params) {
+		Pageable p = PageRequest.of(0, 1); // solo 1 registro
+		List<Venta> ventas = ventaRepository.findVentasCerradasByClienteOrderByFechaDesc(params.getRut(),
+				params.getCodigo(), p);
+		return ventas.isEmpty() ? null : VentaMapper.toVentaDTO(ventas.get(0));
 	}
 
 	public List<VentaDetalleDTO> obtenerDetallePorVenta(Long ventaId) {
 		List<VentaDetalle> detalles = ventaDetalleRepository.findByVentaId(ventaId);
 		return detalles.stream().map(d -> VentaMapper.toVentaDetalleDTO(d)).toList();
+	}
+
+	// Obtener todas las ventas de un vendedor en una fecha específica
+	public List<VentaDTO> obtenerVentasPorFecha(LocalDate fecha) {
+		List<Venta> ventas = ventaRepository.findByFecha(fecha);
+
+		return ventas.stream().map(v -> VentaMapper.toVentaDTO(v)).toList();
 	}
 
 	private static BigDecimal nvl(BigDecimal x) {
@@ -367,6 +363,7 @@ public class VentaService {
 		BigDecimal iva = BigDecimal.ZERO;
 		BigDecimal ila = BigDecimal.ZERO;
 		BigDecimal total = BigDecimal.ZERO;
+		BigDecimal totalNeto = BigDecimal.ZERO;
 
 		if (v.getDetalles() != null) {
 			for (VentaDetalle d : v.getDetalles()) {
@@ -374,7 +371,8 @@ public class VentaService {
 				desc = desc.add(nvl(d.getTotalDescuento()));
 				iva = iva.add(nvl(d.getTotalIva()));
 				ila = ila.add(nvl(d.getTotalIla()));
-				total = total.add(nvl(d.getTotalLinea()));
+				totalNeto = total.add(nvl(d.getTotalLinea()));
+				total = totalNeto.add(iva).add(ila);
 			}
 		}
 
@@ -382,6 +380,7 @@ public class VentaService {
 		v.setTotalDescuento(scale(desc));
 		v.setTotalIva(scale(iva));
 		v.setTotalIla(scale(ila));
+		v.setTotalNeto(scale(totalNeto));
 		v.setTotal(scale(total));
 	}
 
@@ -426,6 +425,11 @@ public class VentaService {
 
 		final VentaDetalle ventaDetalle = VentaMapper.toVentaDetalleEntity(ventaDetalleDTO, venta);
 
+		Producto productoReal = productoRepository.findById(ventaDetalleDTO.getIdProducto())
+				.orElseThrow(() -> new RuntimeException("Producto no existe"));
+
+		ventaDetalle.setProducto(productoReal);
+
 		// Es nueva
 		if (ventaDetalleDTO.getId() == null || ventaDetalleDTO.getId().longValue() == -1) {
 
@@ -437,7 +441,7 @@ public class VentaService {
 					.findFirst().orElseThrow(() -> new EntityNotFoundException(
 							"Item de Venta no encontrado en la venta actual: " + ventaDetalleDTO.getId()));
 
-			old.setProductoId(ventaDetalle.getProductoId());
+			old.setProducto(ventaDetalle.getProducto());
 			old.setCantidad(ventaDetalle.getCantidad());
 			old.setPrecioUnitario(ventaDetalle.getPrecioUnitario());
 			old.setTotalLinea(ventaDetalle.getTotalLinea());
@@ -452,29 +456,40 @@ public class VentaService {
 
 			syncPiezas(old, ventaDetalleDTO.getPiezasDetalle());
 		}
-		// Recalcular totales cabecera
 		recalcularTotalesVenta(venta);
 
 		venta = ventaRepository.save(venta);
 
-		VentaDetalle vdetalle = venta.getDetalles().stream()
-				.filter(d -> d.getProductoId().equals(ventaDetalle.getProductoId())).findFirst()
-				.orElseThrow(() -> new IllegalStateException("No se pudo obtener el detalle recién guardado"));
-
-		if (vdetalle.getPiezasUsadas() != null) {
-			for (VentaDetallePieza pieza : vdetalle.getPiezasUsadas()) {
-				pieza.setVentaDetalle(vdetalle); // Asignar la relación entre pieza y detalle
-				ventaDetallePiezaRepository.save(pieza); // Guardar la pieza
-				Optional<Numerado> numerado = this.numeradoRepository.findById(pieza.getNumerado().getId());
-				if (numerado.isPresent()) {
-					numerado.get().setEstado("V");
-					this.numeradoRepository.save(numerado.get());
-				}
-			}
-		}
-
 		return venta;
 
 	}
+
+	public Venta actualizaEstadoVenta(Long idVenta, EstadoVenta estadoVenta) {
+
+		Optional<Venta> optVenta = this.ventaRepository.findById(idVenta);
+		if (optVenta.isEmpty())
+			return null;
+
+		Venta venta = optVenta.get();
+		venta.setEstado(estadoVenta);
+		ventaRepository.save(venta);
+		return venta;
+	}
+	
+	
+	/**
+     * Obtiene el listado de ventas aplicando filtros dinámicos.
+     * @param filter DTO con los criterios de búsqueda (estados, rutas, clientes, etc.)
+     * @return Lista de ventas que cumplen con los criterios.
+     */
+    @Transactional()
+    public List<Venta> listarVentas(VentaFilter filter) {
+        // 1. Construimos la especificación dinámica basada en el filtro recibido
+        Specification<Venta> specification = VentaSpecifications.toSpecification(filter);
+        
+        // 2. Ejecutamos la consulta. Gracias al EntityGraph en el repositorio,
+        // JPA hará los JOINs necesarios para evitar el problema N+1.
+        return ventaRepository.findAll(specification);
+    }
 
 }

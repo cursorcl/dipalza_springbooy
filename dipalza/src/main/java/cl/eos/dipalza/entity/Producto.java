@@ -1,19 +1,12 @@
 package cl.eos.dipalza.entity;
 
+import jakarta.persistence.*;
+import org.hibernate.annotations.SQLRestriction;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.hibernate.annotations.SQLRestriction;
-
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import jakarta.persistence.Version;
 
 @Entity
 @Table(name = "producto", schema = "dbo")
@@ -45,6 +38,15 @@ public class Producto {
 	@Column(name = "CodigoIla", length = 20)
 	private String codigoila;
 
+	// Contiene la cantida artículos de esta unidad vendida y que no se han
+	// facturado.
+	@Column(name = "stockVentas")
+	private BigDecimal stockVentas;
+
+	// Contiene la cantidad de piezas vendidas y que no se han facturado
+	@Column(name = "piezasVentas")
+	private BigDecimal  piezasVentas;
+
 	@Column(name = "last_update", nullable = false)
 	private LocalDate lastUpdate;
 
@@ -53,16 +55,14 @@ public class Producto {
 	@Column(name = "rv")
 	private byte[] rv;
 
-
 	private Boolean numbered;
 
 	private BigDecimal pieces;
 	// ---- Relación con Numerado ----
-	@OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
-	@SQLRestriction("estado = 'D'")
+	@OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true,  fetch = FetchType.EAGER)
+	@SQLRestriction("estado = 'D' OR estado = 'R'")
 	private List<Numerado> numerados = new ArrayList<>();
-	
-	
+
 	public Producto() {
 	}
 
@@ -170,4 +170,21 @@ public class Producto {
 	public void setPieces(BigDecimal pieces) {
 		this.pieces = pieces;
 	}
+
+	public BigDecimal getStockVentas() {
+		return stockVentas;
+	}
+
+	public void setStockVentas(BigDecimal stockVentas) {
+		this.stockVentas = stockVentas;
+	}
+
+	public BigDecimal getPiezasVentas() {
+		return piezasVentas;
+	}
+
+	public void setPiezasVentas(BigDecimal piezasVentas) {
+		this.piezasVentas = piezasVentas;
+	}
+
 }

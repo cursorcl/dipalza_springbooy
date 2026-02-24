@@ -18,14 +18,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import cl.eos.dipalza.entity.EstadoVenta;
 import cl.eos.dipalza.entity.Numerado;
 import cl.eos.dipalza.entity.Venta;
 import cl.eos.dipalza.mapper.VentaMapper;
+import cl.eos.dipalza.model.ClienteIdQueryDTO;
+import cl.eos.dipalza.model.EstadoVentaDTO;
 import cl.eos.dipalza.model.NumeradoDTO;
 import cl.eos.dipalza.model.venta.VentaDTO;
 import cl.eos.dipalza.model.venta.VentaDetalleDTO;
 import cl.eos.dipalza.repository.NumeradoRepository;
 import cl.eos.dipalza.service.VentaService;
+import cl.eos.dipalza.specifications.VentaFilter;
 import jakarta.persistence.EntityNotFoundException;
 
 @RestController
@@ -42,6 +46,24 @@ public class VentaController {
 		this.numeradoRepository = numeradoRepository;
 	}
 
+	@GetMapping
+	public ResponseEntity<List<VentaDTO>> listarVentas(
+	    @RequestParam(required = false) List<String> estados,
+	    @RequestParam(required = false) List<String> rutsClientes,
+	    @RequestParam(required = false) List<String> codigosRutas,
+	    @RequestParam(required = false) List<Long> condicionVentaIds,
+	    @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+	    @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin
+	) {
+	    VentaFilter filter = new VentaFilter(
+	        estados, rutsClientes, codigosRutas, 
+	        condicionVentaIds, null, fechaInicio, fechaFin
+	    );
+	    List<Venta> ventas = ventaService.listarVentas(filter);
+	    List<VentaDTO> ventasDTO = ventas.stream().map(v -> VentaMapper.toVentaDTO(v)).toList();
+	    return ResponseEntity.ok(ventasDTO);
+	}
+	
 	@PostMapping
 	public ResponseEntity<VentaDTO> grabarVenta(@RequestBody VentaDTO venta) {
 		VentaDTO response = null;
@@ -73,9 +95,9 @@ public class VentaController {
 	}
 
 	// Obtener la última venta de un cliente
-	@GetMapping("/cliente/{rut}")
-	public ResponseEntity<VentaDTO> obtenerUltimaVentaDeCliente(@PathVariable String rut) {
-		VentaDTO ultimaVenta = ventaService.obtenerUltimaVentaDeCliente(rut);
+	@PostMapping("/ultimaventacliente")
+	public ResponseEntity<VentaDTO> obtenerUltimaVentaDeCliente(@RequestBody ClienteIdQueryDTO params) {
+		VentaDTO ultimaVenta = ventaService.obtenerUltimaVentaDeCliente(params);
 		if (ultimaVenta == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
@@ -120,5 +142,28 @@ public class VentaController {
 
 		return new ResponseEntity<>(numeradoDTO, HttpStatus.OK);
 
+	}
+
+	@PostMapping("/updateEstadoVenta")
+	public ResponseEntity<VentaDTO> updateEstadoVenta(@RequestBody EstadoVentaDTO estadoVenta) {
+		Objects.requireNonNull(estadoVenta, "El estado de venta debe ser distinto de nulo.");
+		Objects.requireNonNull(estadoVenta.idVenta(), "El identificador de venta debe ser distinto de nulo.");
+		Objects.requireNonNull(estadoVenta.estadoVenta(), "El estado asociado a la venta debe ser distinto de nulo.");
+
+		EstadoVenta estado = EstadoVenta.estadoVentaFromName(estadoVenta.estadoVenta());
+		if (estado == null)
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
+		Venta venta = this.ventaService.actualizaEstadoVenta(estadoVenta.idVenta(), estado);
+		VentaDTO ventaDTO = VentaMapper.toVentaDTO(venta);
+		return new ResponseEntity<>(ventaDTO, HttpStatus.OK);
+	}
+	
+	
+	@GetMapping("/fecha")
+	public ResponseEntity<List<VentaDTO>> obtenerVentasPorFecha(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
+
+		List<VentaDTO> ventas = ventaService.obtenerVentasPorFecha(fecha);
+		return new ResponseEntity<>(ventas, HttpStatus.OK);
 	}
 }

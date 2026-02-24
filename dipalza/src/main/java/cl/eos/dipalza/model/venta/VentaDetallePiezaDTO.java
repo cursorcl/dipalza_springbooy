@@ -11,6 +11,7 @@ public class VentaDetallePiezaDTO implements Serializable {
 	private BigDecimal peso; // opcional
 	private Long detalleVentaId;
 	private Long inventarioId;
+	private Integer numero;
 	private LocalDate creadoEn;
 	
 
@@ -60,6 +61,14 @@ public class VentaDetallePiezaDTO implements Serializable {
 
 	public void setDetalleVentaId(Long detalleVentaId) {
 		this.detalleVentaId = detalleVentaId;
+	}
+
+	public Integer getNumero() {
+		return numero;
+	}
+
+	public void setNumero(Integer numero) {
+		this.numero = numero;
 	}
 	
 	

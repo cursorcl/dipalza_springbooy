@@ -8,6 +8,7 @@ spring:
     password: _l2j1rs2
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
   jpa:
+    open-in-view: false
     hibernate:
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
@@ -37,4 +38,4 @@ security:
     issuer: dipalza
     secret: "8f1d7c0a9b52e34f67a8d5c2b19e04fa37b1e2c4f85d09ab23cd4567e90fab12"
     access-minutes: 10
-    refresh-days: 15
+    refresh-hr: 5

@@ -19,5 +19,7 @@ public interface ProductoResumido {
     String getCodigoila();
     Boolean getNumbered();
     BigDecimal getPieces();
+    BigDecimal getStockVentas();
+    BigDecimal getPiezasVentas();
     LocalDate getLastUpdate();
 }

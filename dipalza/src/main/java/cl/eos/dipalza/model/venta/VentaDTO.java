@@ -29,6 +29,8 @@ public class VentaDTO implements Serializable {
 	private BigDecimal totalNeto; //  Equivale al valor de Cantidad*Precio - %descuento.
 	private BigDecimal total; // Equivale al valor de Total Neto + totalIla + TotalIva
 	
+	private String estadoVenta;
+	
 	private List<VentaDetalleDTO> detalles;
 
 	public VentaDTO() {
@@ -175,6 +177,14 @@ public class VentaDTO implements Serializable {
 
 	public void setTotalNeto(BigDecimal totalNeto) {
 		this.totalNeto = totalNeto;
+	}
+
+	public String getEstadoVenta() {
+		return estadoVenta;
+	}
+
+	public void setEstadoVenta(String estadoVenta) {
+		this.estadoVenta = estadoVenta;
 	}
 	
 	

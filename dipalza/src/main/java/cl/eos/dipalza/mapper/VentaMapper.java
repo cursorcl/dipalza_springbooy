@@ -8,7 +8,9 @@ import java.util.stream.Collectors;
 
 import cl.eos.dipalza.entity.Cliente;
 import cl.eos.dipalza.entity.CondicionVenta;
+import cl.eos.dipalza.entity.EstadoVenta;
 import cl.eos.dipalza.entity.Numerado;
+import cl.eos.dipalza.entity.Producto;
 import cl.eos.dipalza.entity.Ruta;
 import cl.eos.dipalza.entity.Vendedor;
 import cl.eos.dipalza.entity.Venta;
@@ -38,6 +40,7 @@ public class VentaMapper {
 
 		dto.setCodigoCondicionVenta(venta.getCondicionVenta().getCodigo());
 		dto.setNombreCondicionVenta(venta.getCondicionVenta().getDescripcion());
+		dto.setEstadoVenta(venta.getEstado().name());
 
 		// Totales (asumiendo getters en entity)
 		dto.setTotalDescuento(nvl(venta.getTotalDescuento()));
@@ -64,7 +67,7 @@ public class VentaMapper {
 
 		dto.setId(d.getId());
 		dto.setVentaId(d.getVenta().getId());
-		dto.setIdProducto(d.getProductoId());
+		dto.setIdProducto(d.getProducto() == null ? null : d.getProducto().getArticulo());
 		dto.setNombreProducto(d.getProducto() == null ? "" : d.getProducto().getDescripcion());
 		dto.setCantidad(nvl(d.getCantidad()));
 		dto.setPrecioUnitario(nvl(d.getPrecioUnitario()));
@@ -99,6 +102,7 @@ public class VentaMapper {
 		piezaDto.setCreadoEn(pieza.getCreadoEn() != null ? pieza.getCreadoEn() : LocalDate.now());
 		piezaDto.setDetalleVentaId(pieza.getVentaDetalle().getId());
 		piezaDto.setInventarioId(pieza.getNumerado().getId());
+		piezaDto.setNumero(pieza.getNumerado().getNumero());
 
 		return piezaDto;
 	}
@@ -117,7 +121,7 @@ public class VentaMapper {
 		venta.setVendedor(vendedor);
 		venta.setRuta(ruta);
 		venta.setCondicionVenta(condicionVenta);
-		venta.setEstado("CREADA");
+		venta.setEstado(EstadoVenta.estadoVentaFromName(dto.getEstadoVenta()));
 		venta.setTotalNeto(BigDecimal.ZERO);
 		venta.setTotal(BigDecimal.ZERO);
 		venta.setTotalDescuento(BigDecimal.ZERO);
@@ -143,8 +147,15 @@ public class VentaMapper {
 		} else {
 			detalle.setId(dto.getId());
 		}
+		
+		Producto productoStub = new Producto();
+	    productoStub.setArticulo(dto.getIdProducto()); 
+	    if (dto.getNombreProducto() != null) {
+	        productoStub.setDescripcion(dto.getNombreProducto());
+	    }
+		
 
-		detalle.setProductoId(dto.getIdProducto());
+		detalle.setProducto(productoStub);
 		detalle.setVenta(venta);
 		detalle.setCantidad(dto.getCantidad());
 		detalle.setPrecioUnitario(dto.getPrecioUnitario());

@@ -17,6 +17,7 @@ public class CondicionVentaMapper {
         CondicionVentaDTO dto = new CondicionVentaDTO();
         dto.setCodigo(condicionVenta.getCodigo());
         dto.setDescripcion(condicionVenta.getDescripcion());
+        dto.setDias(condicionVenta.getDias());
         return dto;
     }
 
@@ -27,6 +28,7 @@ public class CondicionVentaMapper {
         CondicionVenta condicionVenta = new CondicionVenta();
         condicionVenta.setCodigo(dto.getCodigo());
         condicionVenta.setDescripcion(dto.getDescripcion());
+        condicionVenta.setDias(dto.getDias());
         return condicionVenta;
     }
 }

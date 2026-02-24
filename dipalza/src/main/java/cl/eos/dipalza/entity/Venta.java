@@ -1,34 +1,13 @@
 package cl.eos.dipalza.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.*;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinColumns;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.NamedAttributeNode;
-import jakarta.persistence.NamedEntityGraph;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-
-@NamedEntityGraph(
-		  name = "Venta.header",
-		  attributeNodes = {
-		    @NamedAttributeNode("cliente"),
-		    @NamedAttributeNode("vendedor"),
-		    @NamedAttributeNode("ruta"),
-		    @NamedAttributeNode("condicionVenta") // si necesitas su nombre
-		  }
-		)
 @Entity
 @Table(name = "venta", schema = "dbo")
 public class Venta {
@@ -37,31 +16,30 @@ public class Venta {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	Long id;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@ManyToOne(fetch = FetchType.EAGER, optional = false)
 	@JoinColumns({ @JoinColumn(name = "codigo_cliente", referencedColumnName = "codigo", nullable = false),
 			@JoinColumn(name = "rut_cliente", referencedColumnName = "rut", nullable = false) })
 	private Cliente cliente;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@ManyToOne(fetch = FetchType.EAGER, optional = false)
 	@JoinColumns({ @JoinColumn(name = "codigo_vendedor", referencedColumnName = "codigo", nullable = false),
 			@JoinColumn(name = "tipo_vendedor", referencedColumnName = "tipo", nullable = false) })
 	private Vendedor vendedor;
-	
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+
+	@ManyToOne(fetch = FetchType.EAGER, optional = false)
 	@JoinColumn(name = "condicion_venta", nullable = false)
 	private CondicionVenta condicionVenta;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@ManyToOne(fetch = FetchType.EAGER, optional = false)
 	@JoinColumn(name = "codigo_ruta", nullable = false)
 	private Ruta ruta;
 
 	@Column(name = "fecha", nullable = false)
 	private LocalDate fecha;
 
-
 	@Column(name = "total_neto", precision = 18, scale = 2, nullable = false)
 	private BigDecimal totalNeto;
-	
+
 	@Column(name = "total_descuento", precision = 18, scale = 2, nullable = false)
 	private BigDecimal totalDescuento;
 
@@ -74,11 +52,13 @@ public class Venta {
 	@Column(name = "total", precision = 18, scale = 2, nullable = false)
 	private BigDecimal total;
 
-	@Column(name = "estado", length = 20, nullable = false)
-	private String estado = "EMITIDA";
+	@Enumerated(EnumType.STRING)
+	@Column(name = "estado", nullable = false, length = 20)
+	private EstadoVenta estado;
 
 	// ---- Relación con detalles ----
-	@OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+	@JsonManagedReference
 	private List<VentaDetalle> detalles = new ArrayList<>();
 
 	public Long getId() {
@@ -120,8 +100,6 @@ public class Venta {
 	public void setFecha(LocalDate fecha) {
 		this.fecha = fecha;
 	}
-	
-	
 
 	public BigDecimal getTotalNeto() {
 		return totalNeto;
@@ -163,11 +141,11 @@ public class Venta {
 		this.total = total;
 	}
 
-	public String getEstado() {
+	public EstadoVenta getEstado() {
 		return estado;
 	}
 
-	public void setEstado(String estado) {
+	public void setEstado(EstadoVenta estado) {
 		this.estado = estado;
 	}
 
@@ -178,7 +156,7 @@ public class Venta {
 	public void setDetalles(List<VentaDetalle> detalles) {
 		this.detalles = detalles;
 	}
-	
+
 	public CondicionVenta getCondicionVenta() {
 		return condicionVenta;
 	}
@@ -188,21 +166,20 @@ public class Venta {
 	}
 
 	public void addDetalle(VentaDetalle d) {
-        d.setVenta(this);
-        detalles.add(d);
-    }
-	
-	public void updateDetalle(VentaDetalle d) {
-        d.setVenta(this);
+		d.setVenta(this);
+		detalles.add(d);
 	}
-	
+
+	public void updateDetalle(VentaDetalle d) {
+		d.setVenta(this);
+	}
+
 	public void removeDetalle(VentaDetalle d) {
 		detalles.remove(d);
 	}
-	
+
 	public void removeDetall(int index) {
 		detalles.remove(index);
 	}
-	
 
 }

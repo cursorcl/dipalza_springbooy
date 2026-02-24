@@ -2,7 +2,10 @@ package cl.eos.dipalza.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -14,6 +17,10 @@ public class Ruta {
 	@Column(name = "descripcion", length = 50, nullable = false)
 	private String descripcion;
 
+	@ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "conduccion_id", nullable = false)
+    private Conduccion conduccion;
+	
 	public String getCodigo() {
 		return codigo;
 	}
@@ -29,4 +36,14 @@ public class Ruta {
 	public void setDescripcion(String descripcion) {
 		this.descripcion = descripcion;
 	}
+
+	public Conduccion getConduccion() {
+		return conduccion;
+	}
+
+	public void setConduccion(Conduccion conduccion) {
+		this.conduccion = conduccion;
+	}
+	
+	
 }

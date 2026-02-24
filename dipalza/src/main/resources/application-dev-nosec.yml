@@ -8,6 +8,7 @@ spring:
     password: _l2j1rs2
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
   jpa:
+    open-in-view: false
     hibernate:
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl

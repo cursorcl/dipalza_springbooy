@@ -18,7 +18,7 @@ public class Conduccion {
 
 	@Column(name = "valor", columnDefinition = "money")
 	private BigDecimal valor;
-
+	
 	public String getCodigo() {
 		return codigo;
 	}

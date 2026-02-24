@@ -30,6 +30,8 @@ public class ProductoMapper {
 	    dto.setNumbered(producto.getNumbered());
 	    dto.setLastUpdate(producto.getLastUpdate());
 	    dto.setPieces(producto.getPieces());
+	    dto.setStockVentas(producto.getStockVentas());
+	    dto.setPiezasVentas(producto.getPiezasVentas());
 	    dto.setNumerados(
 	    		producto.getNumerados() == null ? Collections.emptyList() :
 	    		producto.getNumerados().stream().map(n -> toDTO(n)).toList());
@@ -53,6 +55,8 @@ public class ProductoMapper {
         dto.setLastUpdate(resumen.getLastUpdate());
         dto.setNumerados(new ArrayList<>());
         dto.setPieces(resumen.getPieces());
+	    dto.setStockVentas(resumen.getStockVentas());
+	    dto.setPiezasVentas(resumen.getPiezasVentas());       
         return dto;
     }
 

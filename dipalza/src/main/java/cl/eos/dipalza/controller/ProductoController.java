@@ -46,4 +46,5 @@ public class ProductoController {
 				.orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
 						org.springframework.http.HttpStatus.NOT_FOUND, "Producto no encontrado"));
 	}
+	
 }
