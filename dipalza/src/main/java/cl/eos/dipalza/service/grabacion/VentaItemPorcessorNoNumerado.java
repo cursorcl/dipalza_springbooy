@@ -159,10 +159,12 @@ public class VentaItemPorcessorNoNumerado implements VentaItemProcessor {
 
     private void actualizarStockProducto(Producto producto, float cantidadPiezasAsignada, float cantidadAsignada) {
         // Se rebaja de la cantidad de vendidos lo que ya se pasó a facturación.
-        float nuevoStockVentas =  producto.getStockVentas().floatValue() - cantidadAsignada;
-        float nuevoPiezasVentas = producto.getPiezasVentas().floatValue() - cantidadPiezasAsignada;
-        producto.setStockVentas(new BigDecimal(nuevoStockVentas));
-        producto.setPiezasVentas(new BigDecimal(nuevoPiezasVentas));
+        // No puede quedar negativo: stockVentas/piezasVentas son acumulados pendientes
+        // de facturación, no el stock ERP, y pueden ser menores a lo que esta línea pide.
+        BigDecimal nuevoStockVentas = producto.getStockVentas().subtract(BigDecimal.valueOf(cantidadAsignada)).max(BigDecimal.ZERO);
+        BigDecimal nuevoPiezasVentas = producto.getPiezasVentas().subtract(BigDecimal.valueOf(cantidadPiezasAsignada)).max(BigDecimal.ZERO);
+        producto.setStockVentas(nuevoStockVentas);
+        producto.setPiezasVentas(nuevoPiezasVentas);
         productoRepository.save(producto);
     }
 }

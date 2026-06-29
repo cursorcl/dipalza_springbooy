@@ -1,13 +1,11 @@
 package cl.eos.dipalza.repository;
 
-
-import java.util.List;
-
+import cl.eos.dipalza.entity.Cliente;
+import cl.eos.dipalza.entity.ids.ClienteId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import cl.eos.dipalza.entity.Cliente;
-import cl.eos.dipalza.entity.ids.ClienteId;
+import java.util.List;
 
 @Repository
 public interface ClienteRepository extends JpaRepository<Cliente, ClienteId> {
@@ -15,4 +13,7 @@ public interface ClienteRepository extends JpaRepository<Cliente, ClienteId> {
     // Ejemplo: List<Cliente> findByCiudad(String ciudad);
 	
 	List<Cliente> getClienteByCodigoRuta(String ruta);
+
+	List<Cliente> findByCodigoVendedorOrderByRazonAsc(String codigoVendedor);
+
 }

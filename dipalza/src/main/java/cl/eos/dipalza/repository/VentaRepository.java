@@ -1,6 +1,7 @@
 // file: cl/eos/dipalza/repository/VentaRepository.java
 package cl.eos.dipalza.repository;
 
+import cl.eos.dipalza.entity.EstadoVenta;
 import cl.eos.dipalza.entity.Venta;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -44,6 +45,21 @@ public interface VentaRepository extends JpaRepository<Venta, Long>, JpaSpecific
     
     @Query("SELECT v FROM Venta v WHERE v.vendedor.id.codigo = :vendedorCodigo AND CAST(v.fecha AS date) = :fecha")
     List<Venta> findVentasByVendedorAndFecha(@Param("vendedorCodigo") String vendedorCodigo, @Param("fecha") LocalDate fecha);
+
+
+	@Query("SELECT v FROM Venta v WHERE v.vendedor.id.codigo = :vendedorCodigo AND (" +
+			"(CAST(v.fecha AS date) = :fecha) OR " +
+			"(v.fecha < :fecha AND v.estado = :estado)" +
+			")")
+	List<Venta> findVentasDelDiaYPendientes(
+			@Param("vendedorCodigo") String vendedorCodigo,
+			@Param("fecha") LocalDate fecha,
+			@Param("estado") EstadoVenta estado
+	);
+
+
+	@Query("SELECT v FROM Venta v WHERE v.vendedor.id.codigo = :vendedorCodigo AND v.estado  = :estadoVenta")
+	List<Venta> findVentasByVendedorAndEstado(@Param("vendedorCodigo") String vendedorCodigo, @Param("estadoVenta") EstadoVenta estadoVenta);
 
 	///  obtiene las ventas sin detalle
     @Query("""

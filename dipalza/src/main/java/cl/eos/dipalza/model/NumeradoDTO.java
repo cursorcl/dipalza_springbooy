@@ -7,7 +7,9 @@ public class NumeradoDTO {
 
 	private Long id;
 
-	private String articulo;
+	private String codigoProducto;
+
+	private String nombreProducto;
 
 	private Integer numero;
 
@@ -28,12 +30,19 @@ public class NumeradoDTO {
 		this.id = id;
 	}
 
-	public String getArticulo() {
-		return articulo;
+	public String getCodigoProducto() {
+		return codigoProducto;
 	}
 
-	public void setArticulo(String productoId) {
-		this.articulo = productoId;
+	public void setCodigoProducto(String productoId) {
+		this.codigoProducto = productoId;
+	}
+
+	public String getNombreProducto() {
+		return nombreProducto;
+	}
+	public void setNombreProducto(String nombreProducto) {
+		this.nombreProducto = nombreProducto;
 	}
 
 	public Integer getNumero() {

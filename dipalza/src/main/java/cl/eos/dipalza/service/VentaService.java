@@ -343,7 +343,9 @@ public class VentaService {
 		Venta venta = ventaRepository.findById(id)
 				.orElseThrow(() -> new EntityNotFoundException("Venta no encontrada: " + id));
 
-		// Si requiere borrado lógico, marque estado/flag en lugar de delete.
+		if (venta.getEstado() == EstadoVenta.CLOSED)
+			throw new IllegalStateException("La venta %d ya está facturada (CLOSED) y no se puede eliminar.".formatted(id));
+
 		ventaRepository.delete(venta);
 
 		return true;
@@ -353,6 +355,12 @@ public class VentaService {
 	public List<VentaDTO> obtenerVentasPorVendedorYFecha(String vendedorCodigo, LocalDate fecha) {
 		List<Venta> ventas = ventaRepository.findVentasByVendedorAndFecha(vendedorCodigo, fecha);
 
+		return ventas.stream().map(VentaMapper::toVentaDTO).toList();
+	}
+
+	public List<VentaDTO> obtenerVentasPorVendedorFechaEstado(String vendedorCodigo, LocalDate fecha, EstadoVenta estadoVenta)
+	{
+		List<Venta> ventas = ventaRepository.findVentasDelDiaYPendientes((vendedorCodigo), fecha, estadoVenta);
 		return ventas.stream().map(VentaMapper::toVentaDTO).toList();
 	}
 
@@ -452,6 +460,9 @@ public class VentaService {
 
 		Venta venta = ventaDetalle.getVenta();
 
+		if (venta.getEstado() == EstadoVenta.CLOSED)
+			throw new IllegalStateException("La venta %d ya está facturada (CLOSED) y no se puede modificar.".formatted(venta.getId()));
+
 		venta.removeDetalle(ventaDetalle);
 		recalcularTotalesVenta(venta);
 
@@ -535,6 +546,13 @@ public class VentaService {
         // JPA hará los JOINs necesarios para evitar el problema N+1.
         return ventaRepository.findAll(specification);
     }
+
+
+	@Transactional()
+	public List<Venta> listarVentasVendedorYEstado(String saleCode, EstadoVenta estadoVenta) {
+		// 1. Ejecutamos la consulta. Gracias al EntityGraph en el repositorio,
+		return ventaRepository.findVentasByVendedorAndEstado(saleCode, estadoVenta);
+	}
 
 	public List<Venta> obtenerVentasCompletas(Specification<Venta> spec) {
 		// 1. Traemos las ventas y detalles (esto puebla el contexto de persistencia)

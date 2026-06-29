@@ -13,6 +13,8 @@ public class ProductoDTO {
 
 	private BigDecimal ventaNeto;
 
+	private BigDecimal precioLista2;
+
 	private BigDecimal porcIla;
 
 	private BigDecimal porcCarne;
@@ -36,6 +38,26 @@ public class ProductoDTO {
 	private BigDecimal costo;
 	
 	private List<NumeradoDTO> numerados = new ArrayList<>();
+
+	public ProductoDTO() {}
+
+	public ProductoDTO(String articulo, String descripcion, BigDecimal ventaNeto, BigDecimal precioLista2, BigDecimal porcIla, BigDecimal porcCarne, String unidad, BigDecimal stock, Boolean numbered, String codigoila, LocalDate lastUpdate, BigDecimal pieces, BigDecimal stockVentas, BigDecimal piezasVentas, BigDecimal costo) {
+		this.articulo = articulo;
+		this.descripcion = descripcion;
+		this.ventaNeto = ventaNeto;
+		this.precioLista2 = precioLista2;
+		this.porcIla = porcIla;
+		this.porcCarne = porcCarne;
+		this.unidad = unidad;
+		this.stock = stock;
+		this.numbered = numbered;
+		this.codigoila = codigoila;
+		this.lastUpdate = lastUpdate;
+		this.pieces = pieces;
+		this.stockVentas = stockVentas;
+		this.piezasVentas = piezasVentas;
+		this.costo = costo;
+	}
 
 	public String getArticulo() {
 		return articulo;
@@ -156,5 +178,13 @@ public class ProductoDTO {
 
 	public void setCosto(BigDecimal costo) {
 		this.costo = costo;
+	}
+
+	public BigDecimal getPrecioLista2() {
+		return precioLista2;
+	}
+
+	public void setPrecioLista2(BigDecimal precioLista2) {
+		this.precioLista2 = precioLista2;
 	}
 }

@@ -1,18 +1,9 @@
 package cl.eos.dipalza.entity;
 
+import jakarta.persistence.*;
+
 import java.util.HashSet;
 import java.util.Set;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
 
 //AppUser.java
 @Entity
@@ -31,6 +22,14 @@ public class AppUser {
 	@ManyToMany(fetch = FetchType.EAGER)
 	@JoinTable(name = "app_user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
 	private Set<AppRole> roles = new HashSet<>();
+
+
+	@ManyToOne(fetch = FetchType.EAGER, optional = true)
+	@JoinColumns({
+			@JoinColumn(name = "codigo_vendedor", referencedColumnName = "codigo"),
+			@JoinColumn(name = "tipo_vendedor", referencedColumnName = "tipo")
+	})
+	private Vendedor vendedor;
 
 	public Long getId() {
 		return id;
@@ -80,4 +79,11 @@ public class AppUser {
 		this.roles = roles;
 	}
 
+	public Vendedor getVendedor() {
+		return vendedor;
+	}
+
+	public void setVendedor(Vendedor vendedor) {
+		this.vendedor = vendedor;
+	}
 }

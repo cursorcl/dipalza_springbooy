@@ -23,4 +23,5 @@ public interface ProductoResumido {
     BigDecimal getPiezasVentas();
     LocalDate getLastUpdate();
     BigDecimal getCosto();
+    BigDecimal getPrecioLista2();
 }

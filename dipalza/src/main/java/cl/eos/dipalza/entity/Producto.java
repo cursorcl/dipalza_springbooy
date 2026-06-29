@@ -22,6 +22,9 @@ public class Producto {
 	@Column(name = "VentaNeto", columnDefinition = "money", nullable = false)
 	private BigDecimal ventaNeto;
 
+	@Column(name = "PrecioLista2", columnDefinition = "money")
+	private BigDecimal precioLista2;
+
 	@Column(name = "PorcIla", precision = 5, scale = 2) // ajusta scale si corresponde
 	private BigDecimal porcIla;
 
@@ -63,7 +66,7 @@ public class Producto {
 
 	private BigDecimal pieces;
 	// ---- Relación con Numerado ----
-	@OneToMany(mappedBy = "producto", cascade = CascadeType.REMOVE, orphanRemoval = true,  fetch = FetchType.EAGER)
+	@OneToMany(mappedBy = "producto", cascade = CascadeType.REMOVE, orphanRemoval = true,  fetch = FetchType.LAZY)
 	@SQLRestriction("estado = 'D' OR estado = 'R'")
 	private List<Numerado> numerados = new ArrayList<>();
 
@@ -197,5 +200,13 @@ public class Producto {
 
 	public void setCosto(BigDecimal costo) {
 		this.costo = costo;
+	}
+
+	public BigDecimal getPrecioLista2() {
+		return precioLista2;
+	}
+
+	public void setPrecioLista2(BigDecimal precioLista2) {
+		this.precioLista2 = precioLista2;
 	}
 }

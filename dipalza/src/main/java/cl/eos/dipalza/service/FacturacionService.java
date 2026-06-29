@@ -1,7 +1,6 @@
 package cl.eos.dipalza.service;
 
 import cl.eos.dipalza.entity.EstadoVenta;
-import cl.eos.dipalza.entity.Producto;
 import cl.eos.dipalza.entity.Venta;
 import cl.eos.dipalza.entity.VentaDetalle;
 import cl.eos.dipalza.exceptions.NumeroFolioException;
@@ -117,10 +116,19 @@ public class FacturacionService {
                     return procesarVenta(venta);
                 });
                 if(resultado != null) results.add(resultado);
+            } catch(NumeroFolioException e) {
+                // No se pudo obtener folio tras los reintentos: la transacción de esta venta
+                // ya hizo ROLLBACK (incluye cualquier factura parcial que se hubiera cerrado
+                // en este mismo intento), por lo que la venta sigue intacta en estado FINISHED.
+                // Queda pendiente para reintentarse completa en la próxima corrida de facturar().
+                results.add(new VentaFacturaResultado("", LocalDateTime.now(), BigDecimal.ZERO, null,
+                        "Venta %d pendiente: no se pudo obtener folio, se reintentará más tarde. %s"
+                                .formatted(venta.getId(), e.getMessage())));
             } catch(Exception e) {
                 // Aquí capturamos la falla para seguir con el siguiente vendedor de la cola
-                //results.add(new VentaFacturaResultado(venta.getId(), false, "Fallo: " + e.getMessage(), ""));
-                // TODO Debo agregar una entrada que me indique que hay error.
+                results.add(new VentaFacturaResultado("", LocalDateTime.now(), BigDecimal.ZERO, null,
+                        "Venta %d pendiente: error inesperado, se reintentará más tarde. %s"
+                                .formatted(venta.getId(), e.getMessage())));
             }
         }
         return results;
@@ -199,23 +207,34 @@ public class FacturacionService {
         int nroLinea = 1;
         String nroFactura = null;
         String identificador = null;
+        // true solo cuando hay un encabezado YA grabado para (identificador, nroFactura)
+        // pendiente de cerrar (total/cuenta/folio). Evita cerrar una factura que nunca
+        // se abrió (p.ej. si generarObtenerNumeroFactura falla con NumeroFolioException).
+        boolean facturaAbierta = false;
 
         ///  Se procesa cada uno de los registros de la venta
         for(int n = 0; n < venta.getDetalles().size(); n++) {
             VentaDetalleDTO detalle = venta.getDetalles().get(n);
             try {
                 if(n % nroLineasPorFactura == 0) {
+                    // Cierra la factura anterior (total/cuenta/folio) antes de abrir la siguiente.
+                    if(facturaAbierta) {
+                        cerrarFactura(identificador, nroFactura, venta, totalVentaNeto, totalIva, totalIla);
+                    }
+
                     /// Se reinician el contador de filas y los acumuladores de venta.
                     nroLinea = 1;
                     totalVentaNeto = 0f;
                     totalIva = 0f;
                     totalIla = 0f;
                     totalDescuento = 0f;
+                    facturaAbierta = false;
 
                     identificador = generarObtenerIdentificador();
                     nroFactura = generarObtenerNumeroFactura(this.tipoFacturaName);
 
                     grabarEncabezadoVenta(venta, nroFactura, identificador);
+                    facturaAbierta = true;
                 }
 
                 /// Se envía a grabar a la base de datos el registro
@@ -229,57 +248,37 @@ public class FacturacionService {
 
                 nroLinea++;
 
-            } catch(NumeroFolioException ex) {
-
             } catch(EmptyResultDataAccessException ex) {
                 throw new RuntimeException("Producto no encontrado en BD destino: " + detalle.getIdProducto());
             }
         }
 
-        grabarIla(identificador, nroFactura);
-        grabarTotalDocumento(identificador, totalVentaNeto, totalIva, totalIla);
-        grabarCuentaDocumento(venta, nroFactura, totalVentaNeto, totalIva, totalIla);
-        grabarEnFolio(nroFactura, this.tipoFacturaName, Constants.TIPO_DOCUMENTO_FACTURA);
+        // Cierra la última factura abierta (si alguna llegó a abrirse).
+        if(facturaAbierta) {
+            cerrarFactura(identificador, nroFactura, venta, totalVentaNeto, totalIva, totalIla);
+        }
 
+        // El descuento de stockVentas/piezasVentas ya lo hace cada VentaItemProcessor
+        // (VentaItemPorcessorNoNumerado/VentaItemProcessorNumerado) al grabar su línea —
+        // hacerlo de nuevo aquí duplicaba el descuento.
         actualizarVentaFacturado(venta);
-        actualizarStockProductos(venta);
 
         return new VentaFacturaResultado(nroFactura, LocalDateTime.now(), BigDecimal.ZERO, result, "Se ha grabado exitosamente la venta!!");
     }
 
     /**
-     * Resta del acumulado de ventas que lleva el producto la cantidad que realmente fue vendida.
-     *
-     * @param venta registro de venta de un cliente que contiene el listado de ventas.
+     * Cierra una factura ya abierta (con encabezado grabado): registra el ILA, el total
+     * del documento, la cuenta contable y el folio. Se llama una vez por CADA factura
+     * generada dentro de {@link #procesarVenta(VentaDTO)} — no solo al final del proceso —
+     * para que una venta dividida en varias facturas (por {@code NUMERO_LINEAS_FACTURA})
+     * quede con cada una completamente registrada.
      */
-    private void actualizarStockProductos(VentaDTO venta) {
-
-        if(venta == null || venta.getDetalles() == null || venta.getDetalles().isEmpty())
-            return;
-
-        for(VentaDetalleDTO detalle : venta.getDetalles()) {
-
-            Producto producto = productoRepository.findById(detalle.getIdProducto()).orElse(null);
-            if(producto == null)
-                continue;
-
-            var stockVentasActual = producto.getStockVentas();
-            if(stockVentasActual == null)
-                continue;
-
-            var piezasVentasActual = producto.getPiezasVentas();
-            if(piezasVentasActual == null)
-                continue;
-
-            // stock no puede ser negativo
-            stockVentasActual = stockVentasActual.subtract(detalle.getCantidad()).max(BigDecimal.ZERO);;
-            // cantidad de piezas no puede ser negativa
-            piezasVentasActual = piezasVentasActual.subtract(detalle.getPiezas()).max(BigDecimal.ZERO);
-
-            producto.setStockVentas(stockVentasActual);
-            producto.setPiezasVentas(piezasVentasActual);
-            productoRepository.save(producto);
-        }
+    private void cerrarFactura(String identificador, String nroFactura, VentaDTO venta,
+                                float totalVentaNeto, float totalIva, float totalIla) {
+        grabarIla(identificador, nroFactura);
+        grabarTotalDocumento(identificador, totalVentaNeto, totalIva, totalIla);
+        grabarCuentaDocumento(venta, nroFactura, totalVentaNeto, totalIva, totalIla);
+        grabarEnFolio(nroFactura, this.tipoFacturaName, Constants.TIPO_DOCUMENTO_FACTURA);
     }
 
     /**

@@ -25,7 +25,7 @@ public class ProductoService {
      * @return lista de productos.
      */
     public List<ProductoDTO> getAllProductos() {
-        return productoRepository.obtenerTodoResumido()
+        return productoRepository.findAll()
                 .stream()
                 .map(productoMapper::toDTO)
                 .collect(Collectors.toList());
@@ -41,7 +41,7 @@ public class ProductoService {
                 .map(productoMapper::toDTO)
                 .collect(Collectors.toList());
     }
-    
+
    
     
     public List<ProductoDTO> getProductosByDescripcion(String descripcion) {

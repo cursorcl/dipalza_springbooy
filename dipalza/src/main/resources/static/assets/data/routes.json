@@ -1,6 +1,5 @@
 {
   "routes": [
-
     {
       "path": "/mapa",
       "title": "MENUITEMS.HOME.TEXT",
@@ -23,18 +22,49 @@
       "badgeClass": "",
       "submenu": []
     },
-
-        {
-          "path": "ventas",
-          "title": "Ventas por Facturar",
-          "iconType": "",
-          "icon": "",
-          "class": "",
-          "groupTitle": false,
-          "badge": "",
-          "badgeClass": "",
-          "submenu": []
-        }
- 
+    {
+      "path": "ventas",
+      "title": "Ventas por Facturar",
+      "iconType": "feather",
+      "icon": "home",
+      "class": "",
+      "groupTitle": false,
+      "badge": "",
+      "badgeClass": "",
+      "submenu": []
+    },
+    {
+      "path": "ventas/ventas-en-curso",
+      "title": "Ventas en Curso",
+      "iconType": "feather",
+      "icon": "file-text",
+      "class": "",
+      "groupTitle": false,
+      "badge": "",
+      "badgeClass": "",
+      "submenu": []
+    },
+    {
+      "path": "ventas/ventas-facturadas",
+      "title": "Ventas Facturadas",
+      "iconType": "feather",
+      "icon": "file-text",
+      "class": "",
+      "groupTitle": false,
+      "badge": "",
+      "badgeClass": "",
+      "submenu": []
+    },
+    {
+      "path": "numerados",
+      "title": "Productos Numerados",
+      "iconType": "feather",
+      "icon": "file-text",
+      "class": "",
+      "groupTitle": false,
+      "badge": "",
+      "badgeClass": "",
+      "submenu": []
+    }
   ]
 }

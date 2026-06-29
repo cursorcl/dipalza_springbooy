@@ -21,6 +21,7 @@ public class ProductoMapper {
 	    dto.setArticulo(producto.getArticulo());
 	    dto.setDescripcion(producto.getDescripcion());
 	    dto.setVentaNeto(producto.getVentaNeto());
+	    dto.setPrecioLista2(producto.getPrecioLista2());
 	    dto.setPorcIla(producto.getPorcIla());
 	    dto.setPorcCarne(producto.getPorcCarne());
 	    dto.setUnidad(producto.getUnidad());
@@ -32,9 +33,10 @@ public class ProductoMapper {
 	    dto.setPieces(producto.getPieces());
 	    dto.setStockVentas(producto.getStockVentas());
 	    dto.setPiezasVentas(producto.getPiezasVentas());
-	    dto.setNumerados(
-	    		producto.getNumerados() == null ? Collections.emptyList() :
-	    		producto.getNumerados().stream().map(n -> toDTO(n)).toList());
+		dto.setNumerados(null);
+//	    dto.setNumerados(
+//	    		producto.getNumerados() == null ? Collections.emptyList() :
+//	    		producto.getNumerados().stream().map(n -> toDTO(n)).toList());
 
         return dto;
     }
@@ -46,6 +48,7 @@ public class ProductoMapper {
         dto.setArticulo(resumen.getArticulo());
         dto.setDescripcion(resumen.getDescripcion());
         dto.setVentaNeto(resumen.getVentaNeto());
+        dto.setPrecioLista2(resumen.getPrecioLista2());
         dto.setPorcIla(resumen.getPorcIla());
         dto.setPorcCarne(resumen.getPorcCarne());
         dto.setUnidad(resumen.getUnidad());
@@ -70,6 +73,7 @@ public class ProductoMapper {
         producto.setArticulo(dto.getArticulo());
 	    producto.setDescripcion(dto.getDescripcion());
 	    producto.setVentaNeto(dto.getVentaNeto());
+	    producto.setPrecioLista2(dto.getPrecioLista2());
 	    producto.setPorcIla(dto.getPorcIla());
 	    producto.setPorcCarne(dto.getPorcCarne());
 	    producto.setUnidad(dto.getUnidad());
@@ -93,7 +97,7 @@ public class ProductoMapper {
     	
     	NumeradoDTO dto =  new NumeradoDTO();
     	dto.setActualizadoEn(numerado.getActualizadoEn());
-    	dto.setArticulo(numerado.getProducto().getArticulo());
+    	dto.setCodigoProducto(numerado.getProducto().getArticulo());
     	dto.setCreadoEn(numerado.getCreadoEn());
     	dto.setEstado(numerado.getEstado());
     	dto.setId(numerado.getId());

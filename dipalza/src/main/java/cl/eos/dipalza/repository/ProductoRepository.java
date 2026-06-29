@@ -1,20 +1,18 @@
 package cl.eos.dipalza.repository;
 
-
-import java.util.List;
-
+import cl.eos.dipalza.entity.Producto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import cl.eos.dipalza.entity.Producto;
-import cl.eos.dipalza.model.proyecciones.ProductoResumido;
+import java.util.List;
 
 @Repository
 public interface ProductoRepository extends JpaRepository<Producto, String> {
 
 	List<Producto> getProductosByDescripcion(String descripcion);
 	
-	@Query("SELECT p FROM Producto p")
-    List<ProductoResumido> obtenerTodoResumido();
+	@Query("SELECT p FROM Producto p WHERE p.articulo = :articulo")
+	Producto findByArticulo(@Param("articulo") String articulo);
 }

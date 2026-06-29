@@ -9,7 +9,7 @@ spring:
     #url: jdbc:sqlserver://192.168.100.102:1433;databaseName=ventas;encrypt=true;trustServerCertificate=true
     url: jdbc:sqlserver://cursorcl.dynalias.com:1777;databaseName=ventas;encrypt=true;trustServerCertificate=true
     username: sa
-    password: _l2j1rs2
+    password: ${DB_PASSWORD:_l2j1rs2}
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
   jpa:
     open-in-view: false
@@ -43,7 +43,7 @@ app:
 security:
   jwt:
     issuer: dipalza
-    secret: "8f1d7c0a9b52e34f67a8d5c2b19e04fa37b1e2c4f85d09ab23cd4567e90fab12"
+    secret: ${JWT_SECRET:8f1d7c0a9b52e34f67a8d5c2b19e04fa37b1e2c4f85d09ab23cd4567e90fab12}
     access-minutes: 10
     refresh-hr: 5
 
@@ -52,5 +52,5 @@ facturacion:
     #url: jdbc:sqlserver://192.168.100.102:1433;databaseName=Mastersoft;encrypt=true;trustServerCertificate=true
     url: jdbc:sqlserver://cursorcl.dynalias.com:1777;databaseName=Mastersoft;encrypt=true;trustServerCertificate=true
     username: sa
-    password: _l2j1rs2
+    password: ${FACTURACION_DB_PASSWORD:_l2j1rs2}
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver

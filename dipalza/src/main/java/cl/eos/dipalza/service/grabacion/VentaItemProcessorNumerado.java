@@ -239,10 +239,17 @@ public class VentaItemProcessorNumerado implements VentaItemProcessor {
 
     private void guardarStockProducto(Producto producto, float cantidadPiezasAsignada, float cantidadAsignada) {
         // Se rebaja de la cantidad de vendidos lo que ya se pasó a facturación.
-        float nuevoStockVentas = producto.getStockVentas().floatValue() - cantidadAsignada;
-        float nuevoPiezasVentas = producto.getPiezasVentas().floatValue() - cantidadPiezasAsignada;
-        producto.setStockVentas(new BigDecimal(nuevoStockVentas));
-        producto.setPiezasVentas(new BigDecimal(nuevoPiezasVentas));
+        // No puede quedar negativo: stockVentas/piezasVentas/pieces son acumulados
+        // pendientes de facturación, no el stock ERP.
+        BigDecimal nuevoStockVentas = producto.getStockVentas().subtract(BigDecimal.valueOf(cantidadAsignada)).max(BigDecimal.ZERO);
+        BigDecimal nuevoPiezasVentas = producto.getPiezasVentas().subtract(BigDecimal.valueOf(cantidadPiezasAsignada)).max(BigDecimal.ZERO);
+        BigDecimal nuevoPiezas = producto.getPieces().subtract(BigDecimal.valueOf(cantidadPiezasAsignada)).max(BigDecimal.ZERO);
+        producto.setStockVentas(nuevoStockVentas);
+        producto.setPiezasVentas(nuevoPiezasVentas);
+
+        // Se debe actualizar acá, porque no los trigger no actualzizan este campo.
+        producto.setPieces(nuevoPiezas);
+
         productoRepository.save(producto);
     }
 
@@ -291,7 +298,7 @@ public class VentaItemProcessorNumerado implements VentaItemProcessor {
                 nroLinea,
                 producto.getVentaNeto().floatValue(),
                 montos.ventaNetaReal(),
-                asignacion.cantidadPiezasSolicitadas(),
+                asignacion.cantidadPiezasAsignada(),
                 asignacion.diferenciaPiezas(),
                 montos.valorIvaDeLaVenta(),
                 montos.valorIlaDeLaVenta(),

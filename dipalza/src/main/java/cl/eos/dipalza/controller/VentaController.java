@@ -54,7 +54,23 @@ public class VentaController {
 	    List<VentaDTO> ventasDTO = ventas.stream().map(VentaMapper::toVentaDTO).toList();
 	    return ResponseEntity.ok(ventasDTO);
 	}
-	
+	@GetMapping("/pending/{codigoVendedor}")
+	ResponseEntity<List<VentaDTO>> listarVentasPendingByVendedor(
+	    @PathVariable String codigoVendedor) {
+
+		List<String> codigosVendedores = List.of(codigoVendedor);
+		List<String> estados = List.of(EstadoVenta.OPENED.name());
+
+
+		VentaFilter filter = new VentaFilter(
+				estados, null, null,
+				null, codigosVendedores, null, null
+		);
+		List<Venta> ventas = ventaService.listarVentas(filter);
+		List<VentaDTO> ventasDTO = ventas.stream().map(VentaMapper::toVentaDTO).toList();
+		return ResponseEntity.ok(ventasDTO);
+	}
+
 	@PostMapping
 	public ResponseEntity<VentaDTO> grabarVenta(@RequestBody VentaDTO venta) {
 		VentaDTO response = null;
@@ -82,7 +98,12 @@ public class VentaController {
 	// Eliminar una venta
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> eliminarVenta(@PathVariable Long id) {
-		boolean eliminado = ventaService.eliminarVenta(id);
+		boolean eliminado;
+		try {
+			eliminado = ventaService.eliminarVenta(id);
+		} catch (IllegalStateException ex) {
+			return new ResponseEntity<>(HttpStatus.CONFLICT);
+		}
 		if (!eliminado) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
@@ -94,7 +115,7 @@ public class VentaController {
 	public ResponseEntity<List<VentaDTO>> obtenerVentasPorVendedorYFecha(@PathVariable String codigo,
 			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
 
-		List<VentaDTO> ventas = ventaService.obtenerVentasPorVendedorYFecha(codigo, fecha);
+		List<VentaDTO> ventas = ventaService.obtenerVentasPorVendedorFechaEstado(codigo, fecha, EstadoVenta.OPENED);
 		return new ResponseEntity<>(ventas, HttpStatus.OK);
 	}
 
@@ -116,7 +137,12 @@ public class VentaController {
 
 	@DeleteMapping("/eliminarItemVenta/{id}")
 	public ResponseEntity<Void> eliminarUnItemDelDetalleDeUnaVenta(@PathVariable Long id) {
-		Venta ventaActualizada = ventaService.eliminarItemVenta(id);
+		Venta ventaActualizada;
+		try {
+			ventaActualizada = ventaService.eliminarItemVenta(id);
+		} catch (IllegalStateException ex) {
+			return new ResponseEntity<>(HttpStatus.CONFLICT);
+		}
 		if (ventaActualizada == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}

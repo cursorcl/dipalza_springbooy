@@ -1,13 +1,14 @@
 package cl.eos.dipalza.controller;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Base64;
-import java.util.Optional;
-import java.util.UUID;
-
+import cl.eos.dipalza.entity.AppUser;
+import cl.eos.dipalza.entity.RefreshToken;
+import cl.eos.dipalza.entity.Vendedor;
+import cl.eos.dipalza.mapper.VendedorMapper;
+import cl.eos.dipalza.model.VendedorDTO;
+import cl.eos.dipalza.repository.RefreshTokenRepo;
+import cl.eos.dipalza.repository.UserRepo;
+import cl.eos.dipalza.repository.VendedorRepository;
+import cl.eos.dipalza.service.JwtService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
@@ -19,15 +20,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import cl.eos.dipalza.entity.AppUser;
-import cl.eos.dipalza.entity.RefreshToken;
-import cl.eos.dipalza.entity.Vendedor;
-import cl.eos.dipalza.mapper.VendedorMapper;
-import cl.eos.dipalza.model.VendedorDTO;
-import cl.eos.dipalza.repository.RefreshTokenRepo;
-import cl.eos.dipalza.repository.UserRepo;
-import cl.eos.dipalza.repository.VendedorRepository;
-import cl.eos.dipalza.service.JwtService;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Base64;
+import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
@@ -64,13 +63,13 @@ public class AuthController {
 	public TokenResponse login(@RequestBody LoginReq req) {
 		var u = users.findByUsername(req.username())
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
-		
-		
+
+
 		if (!u.isEnabled() || u.isLocked() || !enc.matches(req.password(), u.getPassword()))
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
 
 		// buscar Vendedor
-	    var vendedorOpt = vendedorRepo.findFirstByRutOrderByNombreAsc(u.getUsername());
+	    var vendedorOpt = vendedorRepo.findById(u.getVendedor().getId());
 	    VendedorDTO vendedorDto = vendedorOpt.map(VendedorMapper::toDto).orElse(null);
 		
 		
@@ -124,19 +123,18 @@ public class AuthController {
 	@PostMapping("/weblogin")
 	public WebLoginRes weblogin(@RequestBody LoginReq req) {
 		var u = users.findByUsername(req.username())
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+				.orElseThrow(() -> new  ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciales inválidas"));
 		
-		
+
+
 		if (!u.isEnabled() || u.isLocked() || !enc.matches(req.password(), u.getPassword()))
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
 
-		// buscar Vendedor
-	    var vendedorOpt = vendedorRepo.findFirstByRutOrderByNombreAsc(u.getUsername());
-	    if(vendedorOpt.isEmpty())
-	    	throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-	    
-	    
-	    Vendedor vendedor = vendedorOpt.get();
+
+		if(u.getVendedor() != null)
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+
+
 		String access = jwt.generateAccess(u);
 
 		// refresh aleatorio + hash en BD
@@ -149,10 +147,9 @@ public class AuthController {
 		refreshTokenRepo.save(rt);
 		Long id = u.getId();
 		String userName = u.getUsername();
-		String[] names = vendedor.getNombre().split(" ");
-		String firstName = names[0];
-		String lastName = names.length > 1 ? names[1] : "";
-		
+		String firstName = userName;
+		String lastName = userName;
+
 		
 
 		return new WebLoginRes(access, refreshRaw, 60L * 10, id, userName, firstName, lastName); // 10 min si así configuraste
