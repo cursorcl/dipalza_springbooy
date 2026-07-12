@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-07-12  
 **Proyecto:** dipalza.springboot  
-**Objetivo:** Llevar cobertura de instrucciones de 31% a ~65% mediante 42 nuevos tests distribuidos en tres capas, sin depender de SQL Server activo.
+**Objetivo:** Cobertura completa de servicios y controllers mediante tests distribuidos en tres capas, sin depender de SQL Server activo.
 
 ---
 
@@ -77,6 +77,128 @@ Mocks: `NumeradoRepository`, `ProductoRepository`, `NumeradoMapper`.
 | `findPrecioPromedio_conDatos_calculaPromedio` | pesos [10.0, 20.0] | `15.0f` |
 | `save_productoNoExiste_retornaNull` | `findByArticulo` → null | `null` |
 | `save_numeradoNuevo_creaYRetornaDTO` | numerado no existe en repo | numerado creado con datos del DTO |
+
+### `ClienteServiceTest` (7 tests)
+
+Mocks: `ClienteRepository`, `ClienteMapper`.
+
+| Test | Escenario | Resultado esperado |
+|---|---|---|
+| `getAllClientes_listaVacia_retornaVacia` | repo vacío | `List.of()` |
+| `getAllClientes_conDatos_mapea` | repo devuelve 2 clientes | lista de 2 DTOs |
+| `getClientesByRuta_retornaFiltrados` | repo devuelve clientes de ruta | lista mapeada |
+| `getClienteById_encontrado_retornaDTO` | `findById` presente | `Optional` con DTO |
+| `getClienteById_noEncontrado_retornaVacio` | `findById` vacío | `Optional.empty()` |
+| `createOrUpdate_guardaYRetornaDTO` | mapper + repo.save | DTO guardado |
+| `delete_encontrado_retornaTrue` | `existsById` true | true + deleteById invocado |
+| `delete_noEncontrado_retornaFalse` | `existsById` false | false, sin deleteById |
+
+### `CondicionVentaServiceTest` (5 tests)
+
+Mocks: `CondicionVentaRepository`, `CondicionVentaMapper`.
+
+| Test | Escenario | Resultado esperado |
+|---|---|---|
+| `getAll_retornaListaMapeada` | repo devuelve 2 entidades | lista de 2 DTOs |
+| `getById_encontrado` | `findById` presente | `Optional` con DTO |
+| `getById_noEncontrado` | `findById` vacío | `Optional.empty()` |
+| `createOrUpdate_guardaYRetorna` | repo.save OK | DTO guardado |
+| `delete_encontrado_retornaTrue` | `existsById` true | true |
+| `delete_noEncontrado_retornaFalse` | `existsById` false | false |
+
+### `ConduccionServiceTest` (5 tests)
+
+Mocks: `ConduccionRepository`, `ConduccionMapper`. Misma estructura que `CondicionVentaServiceTest`.
+
+| Test | Escenario | Resultado esperado |
+|---|---|---|
+| `getAll_retornaListaMapeada` | repo devuelve 2 entidades | lista de 2 DTOs |
+| `getById_encontrado` | `findById` presente | `Optional` con DTO |
+| `getById_noEncontrado` | `findById` vacío | `Optional.empty()` |
+| `createOrUpdate_guardaYRetorna` | repo.save OK | DTO guardado |
+| `delete_encontrado_retornaTrue` | `existsById` true | true |
+
+### `IlaServiceTest` (5 tests)
+
+Mocks: `IlaRepository`, `IlaMapper`. Mismo patrón CRUD.
+
+| Test | Escenario | Resultado esperado |
+|---|---|---|
+| `findAllByOrderByDescripcionAsc_mapea` | repo devuelve ordenados | lista mapeada |
+| `getById_encontrado` | presente | `Optional` con DTO |
+| `getById_noEncontrado` | vacío | `Optional.empty()` |
+| `createOrUpdate_guardaYRetorna` | repo.save OK | DTO guardado |
+| `delete_encontrado_retornaTrue` | `existsById` true | true |
+
+### `RutaServiceTest` (6 tests)
+
+Mocks: `RutaRepository`, `RutaMapper`, `ConduccionRepository`.
+
+| Test | Escenario | Resultado esperado |
+|---|---|---|
+| `getAll_retornaListaMapeada` | repo devuelve 2 rutas | lista de 2 DTOs |
+| `getRutaById_encontrado` | presente | `Optional` con DTO |
+| `getRutaById_noEncontrado` | vacío | `Optional.empty()` |
+| `createOrUpdate_usaConduccionMatcheada` | conduccion con código igual al DTO | ruta guardada con esa conduccion |
+| `createOrUpdate_usaPrimeraConduccion_cuandoNoHayMatch` | código no existe en lista | usa `getFirst()` |
+| `delete_noEncontrado_retornaFalse` | `existsById` false | false |
+
+### `ProductoServiceTest` (6 tests)
+
+Mocks: `ProductoRepository`, `ProductoMapper`.
+
+| Test | Escenario | Resultado esperado |
+|---|---|---|
+| `getAllProductos_mapea` | repo devuelve 3 | lista de 3 DTOs |
+| `getProductosByDescripcion_filtra` | repo devuelve 1 | lista de 1 DTO |
+| `findById_encontrado` | presente | `Optional` con DTO |
+| `findById_noEncontrado` | vacío | `Optional.empty()` |
+| `createOrUpdate_guardaYRetorna` | save OK | DTO guardado |
+| `delete_encontrado_retornaTrue` | `existsById` true | true |
+
+### `VentaDetalleServiceTest` (2 tests)
+
+Mocks: `VentaDetalleRepository`.
+
+| Test | Escenario | Resultado esperado |
+|---|---|---|
+| `listarDetallesOptimized_conDatos_mapea` | repo devuelve 2 detalles | lista de 2 DTOs |
+| `listarDetallesOptimized_listaVacia` | repo vacío | lista vacía |
+
+### `ConfiguracionServiceTest` (7 tests)
+
+Mocks: `ConfiguracionRepository`. Sin Spring (lógica de cache pura).
+
+| Test | Escenario | Resultado esperado |
+|---|---|---|
+| `getString_claveExiste_retornaValor` | cache con clave "K" → "val" | "val" |
+| `getString_claveNoExiste_retornaVacio` | cache sin la clave | "" |
+| `getInt_valorNumerico_retornaInt` | cache "42" | 42 |
+| `getInt_valorNoNumerico_retornaCero` | cache "abc" | 0 |
+| `getDouble_valorDecimal_retornaDouble` | cache "3.14" | 3.14 |
+| `getBoolean_true_retornaTrue` | cache "true" | true |
+| `actualizarConfig_claveExiste_actualizaCacheYRepo` | repo devuelve config existente | cache actualizado, repo.save invocado |
+
+### `RefreshTokenServiceTest` (2 tests)
+
+Mocks: `RefreshTokenRepo`.
+
+| Test | Escenario | Resultado esperado |
+|---|---|---|
+| `purgeExpiredTokens_invocaDeleteByExpiresAtBefore` | método scheduled ejecutado | `deleteByExpiresAtBefore(Instant)` invocado |
+| `purgeExpiredTokens_pasaInstantAnteriorOIgualAhora` | el `Instant` pasado no es futuro | argumento capturado ≤ `Instant.now()` |
+
+### `PosicionServiceTest` (5 tests)
+
+Mocks: `PosicionRepository`, `HistorialPosicionRepository`, `VendedorRepository`, `SimpMessagingTemplate`.
+
+| Test | Escenario | Resultado esperado |
+|---|---|---|
+| `obtenerActuales_mapea` | repo devuelve 2 posiciones | lista de 2 DTOs |
+| `obtenerActuales_vacio` | repo vacío | lista vacía |
+| `registrarUbicacion_nuevaPosicion_creaYGuarda` | `findByVendedorId` null | nueva `Posicion` creada + historial insertado |
+| `registrarUbicacion_posicionExistente_actualizaYGuarda` | `findByVendedorId` retorna entidad | posición actualizada + historial insertado |
+| `registrarUbicacion_enviaWebSocket` | cualquier registro | `messagingTemplate.convertAndSend` invocado |
 
 ---
 
@@ -271,22 +393,51 @@ security.jwt.refresh-hr=24
 
 ## Resumen de tests
 
-| Capa | Tests |
-|---|---|
-| Unitarios (Mockito) | 22 nuevos + 8 existentes = 30 |
-| Controller slice (@WebMvcTest) | 54 nuevos + 5 existentes (ProductoController) = 59 |
-| Integration (@SpringBootTest) | 4 |
-| **Total** | **80 tests** |
+| Capa | Clase | Tests nuevos |
+|---|---|---|
+| **Unitario — Servicios** | JwtServiceTest | 5 |
+| | NumeradosServiceTest | 8 |
+| | ClienteServiceTest | 8 |
+| | CondicionVentaServiceTest | 6 |
+| | ConduccionServiceTest | 5 |
+| | IlaServiceTest | 5 |
+| | RutaServiceTest | 6 |
+| | ProductoServiceTest | 6 |
+| | VentaDetalleServiceTest | 2 |
+| | ConfiguracionServiceTest | 7 |
+| | RefreshTokenServiceTest | 2 |
+| | PosicionServiceTest | 5 |
+| **Unitario — Mappers/Utils** | VentaMapperTest | 5 |
+| | UtilsTest | 4 |
+| **Controller slice** | AuthControllerTest | 7 |
+| | VentaControllerTest | 9 |
+| | ClienteControllerTest | 10 |
+| | NumeradosControllerTest | 8 |
+| | PingControllerTest | 1 |
+| | RutaControllerTest | 3 |
+| | CondicionVentaControllerTest | 3 |
+| | ConduccionControllerTest | 3 |
+| | IlaControllerTest | 3 |
+| | PosicionControllerTest | 3 |
+| | VentaDetalleControllerTest | 2 |
+| | FacturacionControllerTest | 2 |
+| **Integration** | ApplicationContextIT | 4 |
+| **Ya existentes** | VentaServiceTotalesTest | 8 |
+| | ProductoControllerTest | 5 |
+| | FacturacionServiceTest/IT | ~10 |
+| | VentaItemProcessor*Test | ~15 |
+| **TOTAL NUEVOS** | | **128** |
+| **TOTAL PROYECTO** | | **~165** |
 
 ## Cobertura esperada
 
 | Paquete | Antes | Después |
 |---|---|---|
-| `service` | ~35% | ~70% |
-| `controller` | ~10% | ~80% |
+| `service` | ~35% | ~80% |
+| `controller` | ~10% | ~85% |
 | `mapper` | ~0% | ~80% |
 | `utils` | ~0% | ~100% |
-| **Total instrucciones** | **31%** | **~70%** |
+| **Total instrucciones** | **31%** | **~75%** |
 
 ---
 
@@ -297,6 +448,16 @@ src/test/java/cl/eos/dipalza/
   service/
     JwtServiceTest.java
     NumeradosServiceTest.java
+    ClienteServiceTest.java
+    CondicionVentaServiceTest.java
+    ConduccionServiceTest.java
+    IlaServiceTest.java
+    RutaServiceTest.java
+    ProductoServiceTest.java
+    VentaDetalleServiceTest.java
+    ConfiguracionServiceTest.java
+    RefreshTokenServiceTest.java
+    PosicionServiceTest.java
   mapper/
     VentaMapperTest.java
   utils/
