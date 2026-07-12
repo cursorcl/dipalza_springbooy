@@ -3,7 +3,7 @@
   "packages": {
     "dipalza": {
       "release-type": "java",
-      "component": "dipalza"
+      "tag-name-format": "v${version}"
     }
   }
 }
