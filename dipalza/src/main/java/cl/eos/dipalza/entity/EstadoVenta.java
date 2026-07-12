@@ -18,7 +18,7 @@ public enum EstadoVenta {
 		try {
 			return EstadoVenta.valueOf(estado.trim().toUpperCase());
 		} catch (IllegalArgumentException e) {
-			return OPENED;
+			return null;
 		}
 	}
 
