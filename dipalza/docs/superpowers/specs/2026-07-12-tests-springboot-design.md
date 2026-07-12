@@ -115,6 +115,114 @@ Mock: `VentaService`, `NumeradoRepository`.
 | `updateEstadoVenta_estadoValido_retorna200` | POST /api/ventas/updateEstadoVenta | estado "OPENED" | 200 |
 | `updateEstadoVenta_estadoInvalido_retorna400` | POST /api/ventas/updateEstadoVenta | estado "GARBAGE" | 400 |
 
+### `ClienteControllerTest` (10 tests)
+
+Mock: `ClienteService`.
+
+| Test | HTTP | Escenario | Status |
+|---|---|---|---|
+| `getAll_retornaLista` | GET /api/clientes | servicio devuelve 2 clientes | 200 + lista |
+| `getByRuta_retornaLista` | GET /api/clientes/ruta/R01 | filtrado por ruta | 200 + lista |
+| `getById_encontrado_retorna200` | GET /api/clientes/12345678 | `getClienteById` presente | 200 + DTO |
+| `getById_noEncontrado_retorna404` | GET /api/clientes/99999999 | `getClienteById` vacío | 404 |
+| `getByVendedor_retornaLista` | GET /api/clientes/vendedor?codigoVendedor=V01 | filtrado por vendedor | 200 + lista |
+| `create_retornaDTO` | POST /api/clientes | `createOrUpdateCliente` devuelve DTO | 200 |
+| `update_encontrado_retorna200` | PUT /api/clientes/12345678/001 | cliente existe → actualiza | 200 |
+| `update_noEncontrado_retorna404` | PUT /api/clientes/99999999/001 | cliente no existe | 404 |
+| `delete_encontrado_retorna204` | DELETE /api/clientes/12345678/001 | servicio devuelve true | 204 |
+| `delete_noEncontrado_retorna404` | DELETE /api/clientes/99999999/001 | servicio devuelve false | 404 |
+
+### `NumeradosControllerTest` (8 tests)
+
+Mock: `NumeradosService`.
+
+| Test | HTTP | Escenario | Status |
+|---|---|---|---|
+| `getAll_retornaLista` | GET /api/numerados | lista de DTOs | 200 |
+| `getByProduct_retornaLista` | GET /api/numerados/byProduct?codigoProducto=ART01 | filtrado por producto | 200 |
+| `getResumen_retornaLista` | GET /api/numerados/resumen | lista agrupada | 200 |
+| `getByEstado_retornaLista` | GET /api/numerados/estados?estado=D | filtrado por estado | 200 |
+| `create_retornaDTO` | POST /api/numerados | save crea nuevo | 200 |
+| `update_retornaDTO` | PUT /api/numerados | save actualiza existente | 200 |
+| `delete_ejecutaSinError` | DELETE /api/numerados | deleteById invocado | 200 |
+| `pesoPorArticulo_retornaFloat` | GET /api/numerados/pesopromedio/ART01 | promedio calculado | 200 |
+
+### `PingControllerTest` (1 test)
+
+Sin mock (sin dependencias).
+
+| Test | HTTP | Escenario | Status |
+|---|---|---|---|
+| `ping_retornaStatusUp` | GET /ping | respuesta con `status: UP` | 200 |
+
+### `RutaControllerTest` (3 tests)
+
+Mock: `RutaService`.
+
+| Test | HTTP | Escenario | Status |
+|---|---|---|---|
+| `getAll_retornaLista` | GET /api/rutas | lista de DTOs | 200 |
+| `getById_encontrado_retorna200` | GET /api/rutas/R01 | ruta presente | 200 |
+| `getById_noEncontrado_retorna404` | GET /api/rutas/X99 | vacío | 404 |
+
+### `CondicionVentaControllerTest` (3 tests)
+
+Mock: `CondicionVentaService`.
+
+| Test | HTTP | Escenario | Status |
+|---|---|---|---|
+| `getAll_retornaLista` | GET /api/condicionventa | lista de DTOs | 200 |
+| `getById_encontrado_retorna200` | GET /api/condicionventa/C01 | presente | 200 |
+| `getById_noEncontrado_retorna404` | GET /api/condicionventa/X99 | vacío | 404 |
+
+### `ConduccionControllerTest` (3 tests)
+
+Mock: `ConduccionService`.
+
+| Test | HTTP | Escenario | Status |
+|---|---|---|---|
+| `getAll_retornaLista` | GET /api/conduccion | lista de DTOs | 200 |
+| `getById_encontrado_retorna200` | GET /api/conduccion/C01 | presente | 200 |
+| `getById_noEncontrado_retorna404` | GET /api/conduccion/X99 | vacío | 404 |
+
+### `IlaControllerTest` (3 tests)
+
+Mock: `IlaService`.
+
+| Test | HTTP | Escenario | Status |
+|---|---|---|---|
+| `getAll_retornaLista` | GET /api/ila | lista de DTOs | 200 |
+| `getById_encontrado_retorna200` | GET /api/ila/I01 | presente | 200 |
+| `getById_noEncontrado_retorna404` | GET /api/ila/X99 | vacío | 404 |
+
+### `PosicionControllerTest` (3 tests)
+
+Mock: `PosicionService`.
+
+| Test | HTTP | Escenario | Status |
+|---|---|---|---|
+| `obtenerPosiciones_retorna200` | GET /api/posicion | lista de DTOs | 200 |
+| `obtenerHistorico_retorna200` | POST /api/posicion/historico | filtro en body | 200 |
+| `registrarPosicion_retorna202` | POST /api/posicion | body con posición | 202 |
+
+### `VentaDetalleControllerTest` (2 tests)
+
+Mock: `VentaDetalleService`.
+
+| Test | HTTP | Escenario | Status |
+|---|---|---|---|
+| `listarDetalles_retornaLista` | GET /api/ventadetalle/1 | lista de DTOs | 200 |
+| `listarDetalles_listaVacia_retorna200` | GET /api/ventadetalle/99 | servicio devuelve `[]` | 200 |
+
+### `FacturacionControllerTest` (2 tests)
+
+Mock: `FacturacionService`.
+
+| Test | HTTP | Escenario | Status |
+|---|---|---|---|
+| `facturar_conResultados_retorna200` | POST /api/facturacion | servicio devuelve lista | 200 |
+| `facturar_sinResultados_retorna204` | POST /api/facturacion | servicio devuelve lista vacía | 204 |
+
 ---
 
 ## Capa 3 — Integration (@SpringBootTest)
@@ -161,15 +269,24 @@ security.jwt.refresh-hr=24
 
 ---
 
+## Resumen de tests
+
+| Capa | Tests |
+|---|---|
+| Unitarios (Mockito) | 22 nuevos + 8 existentes = 30 |
+| Controller slice (@WebMvcTest) | 54 nuevos + 5 existentes (ProductoController) = 59 |
+| Integration (@SpringBootTest) | 4 |
+| **Total** | **80 tests** |
+
 ## Cobertura esperada
 
 | Paquete | Antes | Después |
 |---|---|---|
 | `service` | ~35% | ~70% |
-| `controller` | ~10% | ~65% |
+| `controller` | ~10% | ~80% |
 | `mapper` | ~0% | ~80% |
 | `utils` | ~0% | ~100% |
-| **Total instrucciones** | **31%** | **~65%** |
+| **Total instrucciones** | **31%** | **~70%** |
 
 ---
 
@@ -178,17 +295,27 @@ security.jwt.refresh-hr=24
 ```
 src/test/java/cl/eos/dipalza/
   service/
-    JwtServiceTest.java                          (nuevo)
-    NumeradosServiceTest.java                    (nuevo)
+    JwtServiceTest.java
+    NumeradosServiceTest.java
   mapper/
-    VentaMapperTest.java                         (nuevo)
+    VentaMapperTest.java
   utils/
-    UtilsTest.java                               (nuevo)
+    UtilsTest.java
   controller/
-    AuthControllerTest.java                      (nuevo)
-    VentaControllerTest.java                     (nuevo)
-  ApplicationContextIT.java                      (nuevo)
+    AuthControllerTest.java
+    VentaControllerTest.java
+    ClienteControllerTest.java
+    NumeradosControllerTest.java
+    PingControllerTest.java
+    RutaControllerTest.java
+    CondicionVentaControllerTest.java
+    ConduccionControllerTest.java
+    IlaControllerTest.java
+    PosicionControllerTest.java
+    VentaDetalleControllerTest.java
+    FacturacionControllerTest.java
+  ApplicationContextIT.java
 
 src/test/resources/
-  application-dev-sec.properties                (nuevo)
+  application-dev-sec.properties
 ```
