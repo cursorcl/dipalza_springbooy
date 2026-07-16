@@ -13,10 +13,12 @@
 - Backend: sin manejador de excepciones global nuevo — usar `ResponseStatusException` directamente (patrón de `AuthController`).
 - Backend: controllers delgados, delegan 100% al service (patrón de `RutaController`).
 - Backend: constructor injection siempre, nunca `@Autowired` de campo.
-- Flutter: no existe suite de tests automatizados para este estilo de páginas/providers — verificar con `flutter analyze` y checklist manual (no inventar tests falsos).
+- Flutter: sí existe una suite de tests automatizados (`flutter test`, baseline: 26 tests pasando en `test/unit/` y `test/widget/`) aunque no cubre páginas/providers de este estilo específico — no inventar tests nuevos para código sin ese patrón, pero **toda tarea que modifique un archivo con test existente debe correr `flutter test` completo y no dejar ningún test roto** (ver Task 7, que corrige una aserción que codificaba el bug de `ClientesModel.ruta`). Además de eso, verificar con `flutter analyze` y el checklist manual de cada task.
 - Flutter: mantener retrocompatibilidad — `RutasPage()` sin argumentos debe comportarse exactamente igual que hoy (usado por `LoginPage` antes del Task 9, y como fallback en el router).
 - No tocar `ClientesProvider.obtenerListaClientes`, `clientes.page.dart`, ni el getter/setter `PreferenciasUsuario.ruta` (quedan tal cual, ver spec).
 - La tabla `dbo.vendedor_ruta` ya existe en dev (migración `migration_20260716.sql` ya aplicada y commiteada) — no repetir ese paso.
+- Backend: todo comando `./mvnw` debe incluir `-Dfrontend.skip=true` — el `frontend-maven-plugin` del `pom.xml` apunta a `../../dipalzaSpringbootClient` (ruta relativa que no existe dentro de este worktree) y falla si no se omite.
+- Este plan se ejecuta dentro de worktrees dedicados: backend en `dipalza.springboot/.worktrees/feature-vendedor-rutas/dipalza` (rama `feature/vendedor-rutas`), Flutter en `flutterDipalza/.worktrees/feature-vendedor-rutas` (rama `feature/vendedor-rutas`). Todas las rutas de archivo del plan ya están actualizadas a estas ubicaciones.
 
 ---
 
@@ -146,13 +148,13 @@ public interface VendedorRutaRepository extends JpaRepository<VendedorRuta, Vend
 
 - [ ] **Step 4: Compilar**
 
-Run: `cd /Users/cursor/Dev/dipalza/dipalza.springboot/dipalza && ./mvnw -q compile`
+Run: `cd /Users/cursor/Dev/dipalza/dipalza.springboot/.worktrees/feature-vendedor-rutas/dipalza && ./mvnw -q compile -Dfrontend.skip=true`
 Expected: termina sin errores (sin salida, `-q` solo imprime en caso de fallo).
 
 - [ ] **Step 5: Commit**
 
 ```bash
-cd /Users/cursor/Dev/dipalza/dipalza.springboot/dipalza
+cd /Users/cursor/Dev/dipalza/dipalza.springboot/.worktrees/feature-vendedor-rutas/dipalza
 git add src/main/java/cl/eos/dipalza/entity/ids/VendedorRutaId.java \
         src/main/java/cl/eos/dipalza/entity/VendedorRuta.java \
         src/main/java/cl/eos/dipalza/repository/VendedorRutaRepository.java
@@ -295,7 +297,7 @@ class VendedorRutaServiceTest {
 
 - [ ] **Step 2: Ejecutar y verificar que falla (no compila: `VendedorRutaService` no existe)**
 
-Run: `cd /Users/cursor/Dev/dipalza/dipalza.springboot/dipalza && ./mvnw test -Dtest=VendedorRutaServiceTest`
+Run: `cd /Users/cursor/Dev/dipalza/dipalza.springboot/.worktrees/feature-vendedor-rutas/dipalza && ./mvnw test -Dfrontend.skip=true -Dtest=VendedorRutaServiceTest`
 Expected: `COMPILATION ERROR` — `cannot find symbol: class VendedorRutaService`
 
 - [ ] **Step 3: Implementar `VendedorRutaService`**
@@ -374,13 +376,13 @@ public class VendedorRutaService {
 
 - [ ] **Step 4: Ejecutar y verificar que pasa**
 
-Run: `cd /Users/cursor/Dev/dipalza/dipalza.springboot/dipalza && ./mvnw test -Dtest=VendedorRutaServiceTest`
+Run: `cd /Users/cursor/Dev/dipalza/dipalza.springboot/.worktrees/feature-vendedor-rutas/dipalza && ./mvnw test -Dfrontend.skip=true -Dtest=VendedorRutaServiceTest`
 Expected: `Tests run: 5, Failures: 0, Errors: 0` — `BUILD SUCCESS`
 
 - [ ] **Step 5: Commit**
 
 ```bash
-cd /Users/cursor/Dev/dipalza/dipalza.springboot/dipalza
+cd /Users/cursor/Dev/dipalza/dipalza.springboot/.worktrees/feature-vendedor-rutas/dipalza
 git add src/test/java/cl/eos/dipalza/service/VendedorRutaServiceTest.java \
         src/main/java/cl/eos/dipalza/service/VendedorRutaService.java
 git commit -m "feat: agrega VendedorRutaService (asignación y consulta de rutas por vendedor)
@@ -479,7 +481,7 @@ class VendedorRutaControllerTest {
 
 - [ ] **Step 2: Ejecutar y verificar que falla**
 
-Run: `cd /Users/cursor/Dev/dipalza/dipalza.springboot/dipalza && ./mvnw test -Dtest=VendedorRutaControllerTest`
+Run: `cd /Users/cursor/Dev/dipalza/dipalza.springboot/.worktrees/feature-vendedor-rutas/dipalza && ./mvnw test -Dfrontend.skip=true -Dtest=VendedorRutaControllerTest`
 Expected: `COMPILATION ERROR` — `cannot find symbol: class VendedorRutaController`
 
 - [ ] **Step 3: Implementar el controller**
@@ -524,13 +526,13 @@ public class VendedorRutaController {
 
 - [ ] **Step 4: Ejecutar y verificar que pasa**
 
-Run: `cd /Users/cursor/Dev/dipalza/dipalza.springboot/dipalza && ./mvnw test -Dtest=VendedorRutaControllerTest`
+Run: `cd /Users/cursor/Dev/dipalza/dipalza.springboot/.worktrees/feature-vendedor-rutas/dipalza && ./mvnw test -Dfrontend.skip=true -Dtest=VendedorRutaControllerTest`
 Expected: `Tests run: 3, Failures: 0, Errors: 0` — `BUILD SUCCESS`
 
 - [ ] **Step 5: Commit**
 
 ```bash
-cd /Users/cursor/Dev/dipalza/dipalza.springboot/dipalza
+cd /Users/cursor/Dev/dipalza/dipalza.springboot/.worktrees/feature-vendedor-rutas/dipalza
 git add src/test/java/cl/eos/dipalza/controller/VendedorRutaControllerTest.java \
         src/main/java/cl/eos/dipalza/controller/VendedorRutaController.java
 git commit -m "feat: agrega VendedorRutaController (GET/PUT /api/vendedores/{codigo}/{tipo}/rutas)
@@ -841,13 +843,13 @@ import '../model/rutas_model.dart';
 
 - [ ] **Step 3: Verificar con `flutter analyze`**
 
-Run: `cd /Users/cursor/Dev/dipalza/flutterDipalza && flutter analyze lib/src/page/rutas/rutas.page.dart lib/src/share/app_router.dart`
+Run: `cd /Users/cursor/Dev/dipalza/flutterDipalza/.worktrees/feature-vendedor-rutas && flutter analyze lib/src/page/rutas/rutas.page.dart lib/src/share/app_router.dart`
 Expected: `No issues found!`
 
 - [ ] **Step 4: Commit**
 
 ```bash
-cd /Users/cursor/Dev/dipalza/flutterDipalza
+cd /Users/cursor/Dev/dipalza/flutterDipalza/.worktrees/feature-vendedor-rutas
 git add lib/src/page/rutas/rutas.page.dart lib/src/share/app_router.dart
 git commit -m "feat: RutasPage soporta selección múltiple y modo obligatorio
 
@@ -928,13 +930,13 @@ En `lib/src/share/prefs_usuario.dart`, justo después del bloque `get ruta`/`set
 
 - [ ] **Step 3: Verificar con `flutter analyze`**
 
-Run: `cd /Users/cursor/Dev/dipalza/flutterDipalza && flutter analyze lib/src/provider/vendedor_ruta_provider.dart lib/src/share/prefs_usuario.dart`
+Run: `cd /Users/cursor/Dev/dipalza/flutterDipalza/.worktrees/feature-vendedor-rutas && flutter analyze lib/src/provider/vendedor_ruta_provider.dart lib/src/share/prefs_usuario.dart`
 Expected: `No issues found!`
 
 - [ ] **Step 4: Commit**
 
 ```bash
-cd /Users/cursor/Dev/dipalza/flutterDipalza
+cd /Users/cursor/Dev/dipalza/flutterDipalza/.worktrees/feature-vendedor-rutas
 git add lib/src/provider/vendedor_ruta_provider.dart lib/src/share/prefs_usuario.dart
 git commit -m "feat: agrega VendedorRutaProvider y caché local de rutas asignadas
 
@@ -1095,7 +1097,7 @@ por:
 
 - [ ] **Step 6: Verificar con `flutter analyze`**
 
-Run: `cd /Users/cursor/Dev/dipalza/flutterDipalza && flutter analyze lib/src/page/config/preferences.page.dart`
+Run: `cd /Users/cursor/Dev/dipalza/flutterDipalza/.worktrees/feature-vendedor-rutas && flutter analyze lib/src/page/config/preferences.page.dart`
 Expected: `No issues found!`
 
 - [ ] **Step 7: Verificación manual**
@@ -1105,7 +1107,7 @@ Levantar la app (`flutter run`), ir a Configuración → tocar "Rutas" → marca
 - [ ] **Step 8: Commit**
 
 ```bash
-cd /Users/cursor/Dev/dipalza/flutterDipalza
+cd /Users/cursor/Dev/dipalza/flutterDipalza/.worktrees/feature-vendedor-rutas
 git add lib/src/page/config/preferences.page.dart
 git commit -m "feat: Configuración usa selección múltiple de rutas (chips)
 
@@ -1119,6 +1121,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Files:**
 - Modify: `lib/src/model/clientes_model.dart:41`
 - Modify: `lib/src/page/ventas/venta.encabezado.edicion.page.dart:250`
+- Modify: `test/unit/clientes_model_test.dart:27` — **existe una suite de tests automatizados** (`flutter test`, 26 tests) que el resto del plan no contemplaba. Este archivo en particular codifica el bug actual: envía `'ruta': 'R01'` en el JSON de entrada pero espera `cliente.ruta == ''` — hay que corregir esa aserción para que refleje el comportamiento correcto.
 
 - [ ] **Step 1: Corregir el typo en `ClientesModel.fromJson`**
 
@@ -1134,7 +1137,23 @@ por:
       ruta: json["ruta"] ?? "");
 ```
 
-- [ ] **Step 2: Usar la ruta del cliente en `saveVenta()`**
+- [ ] **Step 2: Corregir el test que codificaba el bug**
+
+En `test/unit/clientes_model_test.dart`, dentro de `test('fromJson creates correct model', ...)`, cambiar (línea 27):
+
+```dart
+      expect(cliente.ruta, '');
+```
+
+por:
+
+```dart
+      expect(cliente.ruta, 'R01');
+```
+
+(el JSON de entrada de ese mismo test, línea 15, ya trae `'ruta': 'R01'` — la aserción pasaba a `''` únicamente por el typo que se corrige en el Step 1).
+
+- [ ] **Step 3: Usar la ruta del cliente en `saveVenta()`**
 
 Cambiar (línea 250):
 
@@ -1148,20 +1167,25 @@ por:
         codigoRuta: _clienteSeleccionado!.ruta,
 ```
 
-- [ ] **Step 3: Verificar con `flutter analyze`**
+- [ ] **Step 4: Ejecutar la suite de tests y verificar que pasa**
 
-Run: `cd /Users/cursor/Dev/dipalza/flutterDipalza && flutter analyze lib/src/model/clientes_model.dart lib/src/page/ventas/venta.encabezado.edicion.page.dart`
+Run: `cd /Users/cursor/Dev/dipalza/flutterDipalza/.worktrees/feature-vendedor-rutas && flutter test test/unit/clientes_model_test.dart`
+Expected: `All tests passed!` (5 tests)
+
+- [ ] **Step 5: Verificar con `flutter analyze`**
+
+Run: `cd /Users/cursor/Dev/dipalza/flutterDipalza/.worktrees/feature-vendedor-rutas && flutter analyze lib/src/model/clientes_model.dart lib/src/page/ventas/venta.encabezado.edicion.page.dart`
 Expected: `No issues found!`
 
-- [ ] **Step 4: Verificación manual**
+- [ ] **Step 6: Verificación manual**
 
 Crear una venta nueva para un cliente conocido y confirmar (log/debug o inspección de la respuesta del backend) que `codigoRuta` corresponde a la ruta real del cliente, no a un valor vacío ni al de otro cliente.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-cd /Users/cursor/Dev/dipalza/flutterDipalza
-git add lib/src/model/clientes_model.dart lib/src/page/ventas/venta.encabezado.edicion.page.dart
+cd /Users/cursor/Dev/dipalza/flutterDipalza/.worktrees/feature-vendedor-rutas
+git add lib/src/model/clientes_model.dart lib/src/page/ventas/venta.encabezado.edicion.page.dart test/unit/clientes_model_test.dart
 git commit -m "fix: venta usa la ruta del cliente seleccionado, corrige typo tuta->ruta
 
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
@@ -1238,13 +1262,18 @@ class Validators {
 
 - [ ] **Step 3: Verificar con `flutter analyze`**
 
-Run: `cd /Users/cursor/Dev/dipalza/flutterDipalza && flutter analyze lib/src/bloc/login_bloc.dart lib/src/page/login/login_validacion.dart`
+Run: `cd /Users/cursor/Dev/dipalza/flutterDipalza/.worktrees/feature-vendedor-rutas && flutter analyze lib/src/bloc/login_bloc.dart lib/src/page/login/login_validacion.dart`
 Expected: aparecerán errores en `login.page.dart` (Task 9 aún no aplicado) referenciando `bloc.changeRuta`/`bloc.ruta` — eso es esperado en este punto intermedio; confirmar que `login_bloc.dart` y `login_validacion.dart` en sí no tienen errores propios.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 4: Ejecutar la suite completa de tests**
+
+Run: `cd /Users/cursor/Dev/dipalza/flutterDipalza/.worktrees/feature-vendedor-rutas && flutter test`
+Expected: `All tests passed!` (26 tests) — ningún test existente (`test/widget_test.dart`, `test/widget/login_page_test.dart`) importa `login.page.dart` directamente, así que el estado intermedio de Step 3 no afecta esta corrida.
+
+- [ ] **Step 5: Commit**
 
 ```bash
-cd /Users/cursor/Dev/dipalza/flutterDipalza
+cd /Users/cursor/Dev/dipalza/flutterDipalza/.worktrees/feature-vendedor-rutas
 git add lib/src/bloc/login_bloc.dart lib/src/page/login/login_validacion.dart
 git commit -m "refactor: login ya no valida ni exige una ruta para habilitar Ingresar
 
@@ -1468,8 +1497,13 @@ por:
 
 - [ ] **Step 7: Verificar con `flutter analyze`**
 
-Run: `cd /Users/cursor/Dev/dipalza/flutterDipalza && flutter analyze`
+Run: `cd /Users/cursor/Dev/dipalza/flutterDipalza/.worktrees/feature-vendedor-rutas && flutter analyze`
 Expected: `No issues found!` (ahora sin los errores intermedios de Task 8)
+
+- [ ] **Step 7b: Ejecutar la suite completa de tests**
+
+Run: `cd /Users/cursor/Dev/dipalza/flutterDipalza/.worktrees/feature-vendedor-rutas && flutter test`
+Expected: `All tests passed!` (26 tests)
 
 - [ ] **Step 8: Verificación manual**
 
@@ -1480,7 +1514,7 @@ Expected: `No issues found!` (ahora sin los errores intermedios de Task 8)
 - [ ] **Step 9: Commit**
 
 ```bash
-cd /Users/cursor/Dev/dipalza/flutterDipalza
+cd /Users/cursor/Dev/dipalza/flutterDipalza/.worktrees/feature-vendedor-rutas
 git add lib/src/page/login/login.page.dart
 git commit -m "feat: login no pide ruta; fuerza selección solo si el vendedor no tiene ninguna
 
