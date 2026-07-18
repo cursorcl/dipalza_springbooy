@@ -372,6 +372,13 @@ public class VentaService {
 		return ventas.isEmpty() ? null : VentaMapper.toVentaDTO(ventas.get(0));
 	}
 
+	public List<VentaDTO> obtenerUltimasVentasDeCliente(ClienteIdQueryDTO params) {
+		Pageable p = PageRequest.of(0, 3); // últimas 3 ventas
+		List<Venta> ventas = ventaRepository.findVentasCerradasByClienteOrderByFechaDesc(params.getRut(),
+				params.getCodigo(), p);
+		return ventas.stream().map(VentaMapper::toVentaDTO).toList();
+	}
+
 	public List<VentaDetalleDTO> obtenerDetallePorVenta(Long ventaId) {
 		List<VentaDetalle> detalles = ventaDetalleRepository.findByVentaId(ventaId);
 		return detalles.stream().map(d -> VentaMapper.toVentaDetalleDTO(d)).toList();

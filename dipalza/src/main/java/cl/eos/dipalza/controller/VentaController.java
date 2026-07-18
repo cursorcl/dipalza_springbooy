@@ -129,6 +129,13 @@ public class VentaController {
 		return new ResponseEntity<>(ultimaVenta, HttpStatus.OK);
 	}
 
+	// Obtener las últimas 3 ventas cerradas de un cliente
+	@PostMapping("/ultimasventascliente")
+	public ResponseEntity<List<VentaDTO>> obtenerUltimasVentasDeCliente(@RequestBody ClienteIdQueryDTO params) {
+		List<VentaDTO> ultimasVentas = ventaService.obtenerUltimasVentasDeCliente(params);
+		return new ResponseEntity<>(ultimasVentas, HttpStatus.OK);
+	}
+
 	// Obtener el detalle de una venta.
 	@GetMapping("/{idVenta}/detalles")
 	public ResponseEntity<List<VentaDetalleDTO>> obtenerTodosLosItemsDelDetalleDeUnaVenta(@PathVariable Long idVenta) {

@@ -2,6 +2,7 @@ package cl.eos.dipalza.controller;
 
 import cl.eos.dipalza.entity.EstadoVenta;
 import cl.eos.dipalza.entity.Venta;
+import cl.eos.dipalza.model.ClienteIdQueryDTO;
 import cl.eos.dipalza.model.EstadoVentaDTO;
 import cl.eos.dipalza.model.venta.VentaDTO;
 import cl.eos.dipalza.model.venta.VentaDetalleDTO;
@@ -157,5 +158,18 @@ class VentaControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(body)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void obtenerUltimasVentasDeCliente_retornaLista() throws Exception {
+        ClienteIdQueryDTO body = new ClienteIdQueryDTO("11111111-1", "001");
+        when(ventaService.obtenerUltimasVentasDeCliente(any()))
+                .thenReturn(List.of(ventaDTO(1L), ventaDTO(2L)));
+
+        mockMvc.perform(post("/api/ventas/ultimasventascliente")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)));
     }
 }
