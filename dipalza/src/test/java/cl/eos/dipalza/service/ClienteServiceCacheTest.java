@@ -14,6 +14,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
@@ -56,5 +57,38 @@ class ClienteServiceCacheTest {
         assertThat(primera).hasSize(1);
         assertThat(segunda).hasSize(1);
         verify(clienteRepository, times(1)).findByCodigoVendedorOrderByRazonAsc(codigoVendedor);
+    }
+
+    @Test
+    void getClientesByRuta_segundaLlamada_noVuelveAGolpearElRepositorio() {
+        String ruta = "CACHE-R01";
+        when(clienteRepository.getClienteByCodigoRuta(ruta))
+                .thenReturn(List.of(entidad("22222222-2", "001")));
+
+        clienteService.getClientesByRuta(ruta);
+        clienteService.getClientesByRuta(ruta);
+
+        verify(clienteRepository, times(1)).getClienteByCodigoRuta(ruta);
+    }
+
+    @Test
+    void getClienteById_segundaLlamada_noVuelveAGolpearElRepositorio() {
+        ClienteId id = new ClienteId("33333333-3", "001");
+        when(clienteRepository.findById(id)).thenReturn(Optional.of(entidad("33333333-3", "001")));
+
+        clienteService.getClienteById("33333333-3", "001");
+        clienteService.getClienteById("33333333-3", "001");
+
+        verify(clienteRepository, times(1)).findById(id);
+    }
+
+    @Test
+    void getAllClientes_segundaLlamada_noVuelveAGolpearElRepositorio() {
+        when(clienteRepository.findAll()).thenReturn(List.of(entidad("44444444-4", "001")));
+
+        clienteService.getAllClientes();
+        clienteService.getAllClientes();
+
+        verify(clienteRepository, times(1)).findAll();
     }
 }

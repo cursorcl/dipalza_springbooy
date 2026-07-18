@@ -23,6 +23,7 @@ public class ClienteService {
     @Autowired
     private ClienteMapper clienteMapper;
 
+    @Cacheable(CacheConfig.ALL_CLIENTES)
     public List<ClienteDTO> getAllClientes() {
         return clienteRepository.findAll()
                 .stream()
@@ -30,6 +31,7 @@ public class ClienteService {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = CacheConfig.CLIENTES_BY_RUTA, key = "#ruta")
     public List<ClienteDTO> getClientesByRuta(String ruta) {
         return clienteRepository.getClienteByCodigoRuta(ruta)
                 .stream()
@@ -37,6 +39,7 @@ public class ClienteService {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = CacheConfig.CLIENTES_BY_ID, key = "#rut + '|' + #codigo")
     public Optional<ClienteDTO> getClienteById(String rut, String codigo) {
         return clienteRepository.findById(new ClienteId(rut, codigo))
                 .map(clienteMapper::toDTO);
