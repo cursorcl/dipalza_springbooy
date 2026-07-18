@@ -1,11 +1,13 @@
 package cl.eos.dipalza.service;
 
+import cl.eos.dipalza.config.CacheConfig;
 import cl.eos.dipalza.entity.Cliente;
 import cl.eos.dipalza.entity.ids.ClienteId;
 import cl.eos.dipalza.mapper.ClienteMapper;
 import cl.eos.dipalza.model.ClienteDTO;
 import cl.eos.dipalza.repository.ClienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -40,6 +42,7 @@ public class ClienteService {
                 .map(clienteMapper::toDTO);
     }
 
+    @Cacheable(value = CacheConfig.CLIENTES_BY_VENDEDOR, key = "#codigoVendedor")
     public List<ClienteDTO> getClientesByVendedor(String codigoVendedor) {
         return clienteRepository.findByCodigoVendedorOrderByRazonAsc(codigoVendedor).stream().map(clienteMapper::toDTO).collect(
                 Collectors.toList());
