@@ -1,7 +1,7 @@
 /* ============================================================================
    DEPLOY DESDE CERO — Sincronización Mastersoft <-> ventas (Dipalza)
    ----------------------------------------------------------------------------
-   Paquete de 8 scripts ejecutables EN ORDEN sobre una instancia SQL Server
+   Paquete de 9 scripts ejecutables EN ORDEN sobre una instancia SQL Server
    donde ya existe [Mastersoft] pero [ventas] todavía no existe.
 
    TOPOLOGÍA
@@ -13,7 +13,8 @@
      [ventas]     = base de la app Dipalza (la crea este mismo script 00).
                     Aquí se crea TODO el esquema de la app y los
                     PROCEDIMIENTOS que consumen las colas.
-     [msdb]       = SQL Server Agent. Aquí se crean los JOBS.
+     [msdb]       = SQL Server Agent. Aquí se crean los JOBS (05, deshabilitados)
+                    y se habilitan (08).
 
    CRUCES DE BASE: todas las bases están en la misma instancia -> las
    transacciones cross-database son locales, no requieren MSDTC.
@@ -28,9 +29,12 @@
      02_listaprecioactiva_fuente.sql  -> ListaPrecioActiva fuente + triggers en [ventas]
      03_colas_triggers_mastersoft.sql -> colas + triggers + procesador inverso en [Mastersoft]
      04_procesadores_ventas.sql       -> los 3 procesadores de sincronización en [ventas]
-     05_jobs_msdb.sql                 -> los 4 jobs del Agent en [msdb]
+     05_jobs_msdb.sql                 -> los 4 jobs del Agent en [msdb] (creados @enabled = 0)
      06_configuracion_inicial.sql     -> instrucciones manuales (ListaPrecioActiva + verificación)
      07_poblado_inicial_ventas.sql    -> carga masiva inicial desde [Mastersoft]
+     08_habilitar_jobs.sql            -> habilita los 4 jobs recién después de que 07 y el
+                                          seed manual de 06 estén confirmados (evita condición
+                                          de carrera entre los jobs y la carga masiva de 07)
 
    Extraído y adaptado de base_de_datos/db/install_dipalza_sync.sql, que
    permanece intacto como referencia histórica (ver docs/superpowers/specs/

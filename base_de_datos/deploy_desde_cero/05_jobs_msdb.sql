@@ -16,9 +16,11 @@ IF EXISTS (SELECT job_id FROM msdb.dbo.sysjobs WHERE name = N'Dipalza - Procesar
 GO
 
 -- JOB 1: Stock (cada 15 segundos)
+-- Se crea deshabilitado: habilitar recién después de que
+-- 07_poblado_inicial_ventas.sql termine con éxito, vía 08_habilitar_jobs.sql.
 EXEC sp_add_job
      @job_name = N'Dipalza - Procesar StockUpdateQueue',
-     @enabled = 1,
+     @enabled = 0,
      @description = N'Procesa la cola de actualizaciones de stock hacia dbo.producto';
 EXEC sp_add_jobstep
      @job_name = N'Dipalza - Procesar StockUpdateQueue',
@@ -42,9 +44,11 @@ EXEC sp_add_jobserver
 GO
 
 -- JOB 2: Tablas Maestras (cada 1 minuto)
+-- Se crea deshabilitado: habilitar recién después de que
+-- 07_poblado_inicial_ventas.sql termine con éxito, vía 08_habilitar_jobs.sql.
 EXEC sp_add_job
      @job_name = N'Dipalza - Procesar MasterDataUpdateQueue',
-     @enabled = 1,
+     @enabled = 0,
      @description = N'Procesa la cola de cambios en tablas maestras (rutas, condiciones, conducción, ila)';
 EXEC sp_add_jobstep
      @job_name = N'Dipalza - Procesar MasterDataUpdateQueue',
@@ -68,9 +72,11 @@ EXEC sp_add_jobserver
 GO
 
 -- JOB 3: Precios (cada 15 segundos)
+-- Se crea deshabilitado: habilitar recién después de que
+-- 07_poblado_inicial_ventas.sql termine con éxito, vía 08_habilitar_jobs.sql.
 EXEC sp_add_job
      @job_name = N'Dipalza - Procesar PriceUpdateQueue',
-     @enabled = 1,
+     @enabled = 0,
      @description = N'Procesa la cola de actualizaciones de precios hacia dbo.producto (VentaNeto y PrecioLista2)';
 EXEC sp_add_jobstep
      @job_name = N'Dipalza - Procesar PriceUpdateQueue',
@@ -94,9 +100,11 @@ EXEC sp_add_jobserver
 GO
 
 -- JOB 4: Listas activas ventas -> Mastersoft (cada 10 segundos, corre en Mastersoft)
+-- Se crea deshabilitado: habilitar recién después de que
+-- 07_poblado_inicial_ventas.sql termine con éxito, vía 08_habilitar_jobs.sql.
 EXEC sp_add_job
      @job_name = N'Dipalza - Procesar ListaPrecioActivaQueue',
-     @enabled = 1,
+     @enabled = 0,
      @description = N'Sincroniza ventas.ListaPrecioActiva -> Mastersoft.ListaPrecioActiva (espejo)';
 EXEC sp_add_jobstep
      @job_name = N'Dipalza - Procesar ListaPrecioActivaQueue',

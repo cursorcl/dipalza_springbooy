@@ -56,6 +56,8 @@ BEGIN TRY
     SELECT
         a.Articulo,
         a.Descripcion,
+        -- VentaNeto inicial es provisorio (viene de Mastersoft.ARTICULO, no de la
+        -- lista de precios activa); se corrige tras el seed de 06 y el job de precios habilitado en 08.
         a.VentaNeto,
         a.PorcIla,
         a.PorcCarne,
