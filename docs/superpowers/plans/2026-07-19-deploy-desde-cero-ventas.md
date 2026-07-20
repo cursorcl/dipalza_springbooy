@@ -609,3 +609,26 @@ cd /Users/cursor/Dev/dipalza/application_v2.0/dipalza_server
 git add docs/superpowers/specs/2026-07-19-deploy-desde-cero-ventas-design.md
 git commit -m "docs: agrega nota de estado y limitaciones al spec de deploy desde cero"
 ```
+
+---
+
+## Nota post-revisión: 9º archivo agregado para corregir condición de carrera
+
+Una revisión final de código sobre toda la rama detectó un hallazgo "Important": con el
+orden 00→07 original, `05_jobs_msdb.sql` creaba los 4 jobs con `@enabled = 1`, y
+`07_poblado_inicial_ventas.sql` corría después dentro de una única transacción. Si
+`Mastersoft` estaba recibiendo escrituras durante la ventana del deploy, los triggers de
+`03_colas_triggers_mastersoft.sql` encolaban eventos y los procesadores de
+`04_procesadores_ventas.sql` (ya habilitados) podían hacer `MERGE` sobre `dbo.producto`,
+`dbo.ruta`, etc. al mismo tiempo que `07` hacía sus `INSERT` — riesgo de violación de PK
+que aborta todo el poblado inicial, o deadlock.
+
+**Resolución (confirmada por el usuario):** los 4 jobs ahora se crean deshabilitados
+(`@enabled = 0` en `05_jobs_msdb.sql`) y se agregó un noveno archivo,
+`08_habilitar_jobs.sql`, que los habilita explícitamente vía `sp_update_job` — a
+ejecutar solo después de que `07` haya terminado con éxito (commit sin error) y de que
+el seed manual de `ListaPrecioActiva` de `06` ya esté aplicado. El paquete pasa de 8 a 9
+archivos; el orden de ejecución sigue siendo estrictamente secuencial, ahora 00→08.
+También se agregó una nota aclaratoria en `07` sobre el carácter provisorio del
+`VentaNeto` inicial, ya que depende de este mismo orden (06 antes de que el job de
+precios, habilitado en 08, corrija el valor).
