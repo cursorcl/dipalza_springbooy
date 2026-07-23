@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/cursorcl/dipalza_server/compare/v1.2.1...v1.2.2) (2026-07-23)
+
+
+### Bug Fixes
+
+* WebSocket de posiciones, nombre de vendedor y endpoint de padrón ([#10](https://github.com/cursorcl/dipalza_server/issues/10)) ([028da28](https://github.com/cursorcl/dipalza_server/commit/028da2889f10002c747c4d1e17292b340187dc03))
+
 ## [1.2.1](https://github.com/cursorcl/dipalza_server/compare/v1.2.0...v1.2.1) (2026-07-21)
 
 
