@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/cursorcl/dipalza_server/compare/v1.2.2...v1.3.0) (2026-07-24)
+
+
+### Features
+
+* pipeline de deploy manual del backend a servidor remoto ([#12](https://github.com/cursorcl/dipalza_server/issues/12)) ([5e8b86a](https://github.com/cursorcl/dipalza_server/commit/5e8b86adc6ea4970df127977259c2bc7f050dab8))
+
 ## [1.2.2](https://github.com/cursorcl/dipalza_server/compare/v1.2.1...v1.2.2) (2026-07-23)
 
 
