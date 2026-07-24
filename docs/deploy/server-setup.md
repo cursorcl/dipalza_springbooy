@@ -55,8 +55,12 @@ sudo chown -R deploy-dipalza:deploy-dipalza /opt/dipalza-app
 
 ## 6. Migrar el jar actualmente en producción a la nueva estructura
 
-Sustituir `<version-actual>` por la versión que está corriendo hoy (ver
-`dipalza/pom.xml` o la última GitHub Release):
+Sustituir `<version-actual>` por el **tag de la última GitHub Release**
+(con el prefijo `v`, ej. `v1.2.2`) — no por el valor de `<version>` en
+`dipalza/pom.xml` (que no lleva `v`). El workflow de deploy siempre usa
+el tag con `v`, así que usar aquí un valor sin `v` crearía una carpeta
+`releases/1.2.2` que ningún deploy futuro (`releases/v1.2.x`) reconocería
+como la misma línea de versiones.
 
 ```bash
 sudo -u deploy-dipalza mkdir -p /opt/dipalza-app/releases/<version-actual>

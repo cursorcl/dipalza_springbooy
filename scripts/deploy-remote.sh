@@ -42,6 +42,13 @@ fi
 
 echo "Servicio arriba y respondiendo en $HEALTH_URL."
 
+# Refresca el mtime de la versión recién desplegada antes de podar: si se
+# redespliega una versión que ya existía (mkdir -p sobre un directorio
+# existente, o sobrescritura del jar) no la sigue tanto "current" como
+# la más reciente, así que sin este touch podría terminar podada aunque
+# sea la que está sirviendo tráfico.
+touch "$RELEASE_DIR"
+
 cd "$BASE/releases"
 ls -1dt */ | tail -n +$((KEEP_RELEASES + 1)) | xargs -r rm -rf --
 
