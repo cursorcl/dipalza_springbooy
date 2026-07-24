@@ -18,8 +18,8 @@ jobs:
     steps:
       - name: Validar formato de la versión
         run: |
-          if ! [[ "$DEPLOY_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.]+)?$ ]]; then
-            echo "ERROR: version '$DEPLOY_VERSION' no tiene un formato válido (esperado algo como 1.2.4, opcionalmente con sufijo -algo)" >&2
+          if ! [[ "$DEPLOY_VERSION" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.]+)?$ ]]; then
+            echo "ERROR: version '$DEPLOY_VERSION' no tiene un formato válido (esperado algo como v1.2.4, opcionalmente con sufijo -algo)" >&2
             exit 1
           fi
           echo "Versión '$DEPLOY_VERSION' tiene formato válido."
