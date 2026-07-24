@@ -70,15 +70,42 @@ sudo -u deploy-dipalza ln -sfn /opt/dipalza-app/releases/<version-actual> /opt/d
 
 ## 7. Actualizar el `ExecStart` del `.service` para apuntar al symlink
 
-Editar el unit file de `dipalza-app.service` (típicamente
-`/etc/systemd/system/dipalza-app.service`) y cambiar la línea `ExecStart`
-a:
+**Antes que nada, revisar si existe un drop-in override** — tiene prioridad
+sobre el archivo principal, así que si existe y no se actualiza ahí
+también, el cambio de abajo no tiene ningún efecto (esto pasó la primera
+vez: el `.service` principal quedó bien pero el servicio siguió
+arrancando con la ruta vieja porque un `override.conf` la redefinía):
+
+```bash
+sudo systemctl status dipalza-app.service | grep -i "drop-in" -A1
+cat /etc/systemd/system/dipalza-app.service.d/override.conf 2>/dev/null
+```
+
+Si existe un `override.conf` con su propia línea `ExecStart=`, editar
+**ese** archivo (no solo el `.service` principal), preservando cualquier
+flag de JVM que ya tenga (ej. `-Xms`/`-Xmx`):
+
+```bash
+sudo tee /etc/systemd/system/dipalza-app.service.d/override.conf <<'EOF'
+[Service]
+ExecStart=
+ExecStart=/usr/bin/java -Xms512m -Xmx2g -jar /opt/dipalza-app/current/dipalza.jar
+EOF
+```
+
+(La línea vacía `ExecStart=` antes de la real es necesaria — así es como
+systemd permite que un drop-in reemplace, en vez de acumular, el
+`ExecStart` del archivo base.)
+
+Si no hay drop-in, editar directamente el unit file de
+`dipalza-app.service` (típicamente `/etc/systemd/system/dipalza-app.service`)
+y cambiar la línea `ExecStart` a:
 
 ```ini
 ExecStart=/usr/bin/java -jar /opt/dipalza-app/current/dipalza.jar
 ```
 
-Luego:
+Luego, en cualquiera de los dos casos:
 
 ```bash
 sudo systemctl daemon-reload
