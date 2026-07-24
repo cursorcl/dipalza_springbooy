@@ -18,6 +18,7 @@ jobs:
       DEPLOY_VERSION: ${{ inputs.version }}
       SSH_HOST: ${{ secrets.DEPLOY_SSH_HOST }}
       SSH_USER: ${{ secrets.DEPLOY_SSH_USER }}
+      SSH_PORT: ${{ secrets.DEPLOY_SSH_PORT || '22' }}
     steps:
       - name: Validar formato de la versión
         run: |
@@ -45,20 +46,20 @@ jobs:
       - name: Agregar el host a known_hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
 
       - name: Crear carpeta de la versión en el servidor
         run: |
-          ssh "$SSH_USER@$SSH_HOST" \
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
             "mkdir -p /opt/dipalza-app/releases/$DEPLOY_VERSION"
 
       - name: Copiar el jar al servidor
         run: |
           JAR_FILE=$(ls /tmp/deploy-artifact/dipalza-*.jar)
-          scp "$JAR_FILE" \
+          scp -P "$SSH_PORT" "$JAR_FILE" \
             "$SSH_USER@$SSH_HOST:/opt/dipalza-app/releases/$DEPLOY_VERSION/dipalza.jar"
 
       - name: Ejecutar el deploy remoto
         run: |
-          ssh "$SSH_USER@$SSH_HOST" \
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
             "/opt/dipalza-app/scripts/deploy-remote.sh $DEPLOY_VERSION"

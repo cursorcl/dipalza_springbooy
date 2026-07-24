@@ -89,19 +89,23 @@ sudo systemctl status dipalza-app.service
 Confirmar que el servicio sigue respondiendo (`curl http://localhost:8080/actuator/health`)
 antes de continuar.
 
-## 8. Copiar el script de deploy al servidor
+## 8. Copiar los scripts de deploy y rollback al servidor
 
-Una vez completada la Task 2 de este plan (que crea `scripts/deploy-remote.sh`
-en el repo), copiarlo al servidor:
+Una vez completadas las tareas de este plan que crean `scripts/deploy-remote.sh`
+y `scripts/rollback-remote.sh` en el repo, copiarlos al servidor. Si tu SSH
+atiende en un puerto no estándar, agrega `-P <puerto>` a `scp` y `-p <puerto>`
+a `ssh`:
 
 ```bash
-scp scripts/deploy-remote.sh deploy-dipalza@<host>:/opt/dipalza-app/scripts/deploy-remote.sh
-ssh deploy-dipalza@<host> chmod +x /opt/dipalza-app/scripts/deploy-remote.sh
+scp -P <puerto> scripts/deploy-remote.sh scripts/rollback-remote.sh \
+  deploy-dipalza@<host>:/opt/dipalza-app/scripts/
+ssh -p <puerto> deploy-dipalza@<host> \
+  "chmod +x /opt/dipalza-app/scripts/deploy-remote.sh /opt/dipalza-app/scripts/rollback-remote.sh"
 ```
 
-Este script no viaja versionado en cada release — vive fijo en el
-servidor. Si el script cambia en el repo, hay que repetir este paso a
-mano para actualizarlo ahí.
+Ninguno de los dos scripts viaja versionado en cada release — viven fijos
+en el servidor. Si cambian en el repo, hay que repetir este paso a mano
+para actualizarlos ahí.
 
 ## 9. Cargar los secrets en GitHub
 
@@ -110,13 +114,17 @@ Settings → Secrets and variables → Actions → New repository secret:
 - `DEPLOY_SSH_KEY`: contenido completo de la llave privada generada en el paso 2
 - `DEPLOY_SSH_HOST`: hostname o IP del servidor
 - `DEPLOY_SSH_USER`: `deploy-dipalza`
+- `DEPLOY_SSH_PORT`: puerto SSH del servidor, solo si no es el 22 por defecto (si no se carga este secret, el workflow usa 22)
 
 ## 10. Rollback manual (si un deploy queda en mal estado)
 
 El pipeline no hace rollback automático. Las versiones viejas quedan en
-`/opt/dipalza-app/releases/` (las últimas 3). Para volver a la anterior:
+`/opt/dipalza-app/releases/` (las últimas 3). Para volver a una anterior,
+usar `rollback-remote.sh` directamente en el servidor — a diferencia de
+`deploy-remote.sh`, este recibe el número de versión **sin** el prefijo
+`v` (más rápido de teclear a mano en una emergencia; el script antepone
+la `v` internamente para encontrar la carpeta real):
 
 ```bash
-ssh deploy-dipalza@<host> "ln -sfn /opt/dipalza-app/releases/<version-anterior> /opt/dipalza-app/current"
-ssh deploy-dipalza@<host> "sudo systemctl restart dipalza-app.service"
+ssh -p <puerto> deploy-dipalza@<host> "/opt/dipalza-app/scripts/rollback-remote.sh 1.2.3"
 ```
